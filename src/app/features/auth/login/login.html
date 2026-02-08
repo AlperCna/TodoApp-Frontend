@@ -1,0 +1,23 @@
+<div class="app-wrapper">
+  <h1 class="main-title">login</h1>
+
+  <div class="auth-card">
+    <form (submit)="onLogin()">
+      <div class="input-group">
+        <input type="email" name="email" [(ngModel)]="loginData.email" 
+               placeholder="E-posta Adresi" required autofocus>
+      </div>
+
+      <div class="input-group">
+        <input type="password" name="password" [(ngModel)]="loginData.password" 
+               placeholder="Şifre" required>
+      </div>
+
+      <button type="submit" class="auth-btn">Giriş Yap</button>
+    </form>
+
+    <footer class="auth-footer">
+      <a routerLink="/register" class="switch-link">Henüz hesabın yok mu? Kayıt Ol</a>
+    </footer>
+  </div>
+</div>

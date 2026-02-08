@@ -1,0 +1,46 @@
+<div class="app-wrapper">
+  <h1 class="main-title">todos</h1>
+
+  <div class="todo-card">
+    <header class="header">
+      <input class="new-todo" [(ngModel)]="newTodoTitle" 
+             (keyup.enter)="addTodo()" placeholder="Ne yapılması gerekiyor?" autofocus>
+      
+      <div class="extra-inputs">
+        <input type="text" [(ngModel)]="newTodoDescription" placeholder="Açıklama (Opsiyonel)">
+        <div class="date-container">
+          <label>Bitiş:</label>
+          <input type="date" [(ngModel)]="newTodoDueDate">
+        </div>
+        <button class="add-btn" (click)="addTodo()">Ekle</button>
+      </div>
+    </header>
+
+    <section class="main" *ngIf="todos.length > 0">
+      <ul class="todo-list">
+        <li *ngFor="let t of todos" [class.completed]="t.isCompleted">
+          <div class="view">
+            <input class="toggle" type="checkbox" [(ngModel)]="t.isCompleted" (change)="updateTodo(t)">
+            
+            <div class="todo-content">
+              <input class="edit-input" 
+                     [(ngModel)]="t.title" 
+                     (blur)="updateTodo(t)" 
+                     (keyup.enter)="updateTodo(t)">
+                     
+              <span class="desc-text" *ngIf="t.description">{{ t.description }}</span>
+              <span class="date-tag" *ngIf="t.dueDate">📅 {{ t.dueDate | date:'dd.MM.yyyy' }}</span>
+            </div>
+
+            <button class="destroy" (click)="delete(t.id)"></button>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <footer class="footer" *ngIf="todos.length > 0">
+      <span class="todo-count"><strong>{{ todos.length }}</strong> görev listede</span>
+      <button (click)="logout()" class="logout-link">Güvenli Çıkış</button>
+    </footer>
+  </div>
+</div>

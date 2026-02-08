@@ -1,0 +1,74 @@
+/* Sayfa ortalama */
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 60px;
+}
+
+/* Büyük 'login' yazısı */
+.main-title {
+  font-size: 100px;
+  font-weight: 100;
+  text-align: center;
+  color: rgba(175, 47, 47, 0.15);
+  margin: 0;
+}
+
+/* Beyaz kart yapısı */
+.auth-card {
+  background: #fff;
+  width: 450px;
+  margin-top: 30px;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Giriş alanları */
+.input-group input {
+  padding: 16px;
+  border: none;
+  border-bottom: 1px solid #ededed;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 18px;
+  outline: none;
+}
+
+.input-group input::placeholder {
+  font-style: italic;
+  font-weight: 300;
+  color: #e6e6e6;
+}
+
+/* Buton tasarımı */
+.auth-btn {
+  width: 100%;
+  padding: 15px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.auth-btn:hover {
+  background: #45a049;
+}
+
+.auth-footer {
+  padding: 15px;
+  text-align: center;
+  border-top: 1px solid #ededed;
+}
+
+.switch-link {
+  color: #777;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.switch-link:hover {
+  text-decoration: underline;
+}
