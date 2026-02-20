@@ -1,75 +1,25 @@
-/* Konteynırı ortala */
-.app-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 60px;
+.register-wrapper {
+  /* Flexbox ile tam ortalama */
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  
+  /* Ekranı kapla */
+  position: fixed !important; /* Sidebar'ın bıraktığı hayalet boşluğu ezer */
+  top: 0;
+  left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  
+  /* Görsel ayarlar */
+  background-color: #f0f2f5; 
+  z-index: 1000; /* Diğer her şeyin üstüne çıkar */
 }
 
-/* Büyük 'register' yazısı */
-.main-title {
-  font-size: 100px;
-  font-weight: 100;
-  text-align: center;
-  color: rgba(175, 47, 47, 0.15); /* O meşhur TodoMVC kırmızısı */
-  margin: 0;
-}
-
-/* Beyaz kart yapısı ve gölgeler */
-.auth-card {
+.register-card {
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border-radius: 8px;
   background: #fff;
-  width: 450px;
-  margin-top: 30px;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
-}
-
-/* Giriş alanlarını alt alta temizce diz */
-.input-group input {
-  padding: 16px;
-  border: none;
-  border-bottom: 1px solid #ededed;
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 18px;
-  outline: none;
-}
-
-.input-group input::placeholder {
-  font-style: italic;
-  font-weight: 300;
-  color: #e6e6e6;
-}
-
-/* Buton tasarımı */
-.auth-btn {
-  width: 100%;
-  padding: 15px;
-  background: #4caf50; /* Sade bir yeşil */
-  color: white;
-  border: none;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.auth-btn:hover {
-  background: #45a049;
-}
-
-/* Alt link alanı */
-.auth-footer {
-  padding: 15px;
-  text-align: center;
-  border-top: 1px solid #ededed;
-}
-
-.switch-link {
-  color: #777;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.switch-link:hover {
-  text-decoration: underline;
 }

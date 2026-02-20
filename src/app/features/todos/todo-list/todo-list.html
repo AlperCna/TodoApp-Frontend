@@ -1,46 +1,70 @@
-<div class="app-wrapper">
-  <h1 class="main-title">todos</h1>
+<div class="todo-container">
+  <h1 class="todo-logo">todos</h1>
 
-  <div class="todo-card">
-    <header class="header">
-      <input class="new-todo" [(ngModel)]="newTodoTitle" 
-             (keyup.enter)="addTodo()" placeholder="Ne yapılması gerekiyor?" autofocus>
+  <nz-card [nzBordered]="false" class="todo-card">
+    <div class="search-section">
+      <nz-input-group [nzSuffix]="suffixIconSearch">
+        <input type="text" nz-input placeholder="Görevlerde ara..." [(ngModel)]="searchTerm" (input)="onSearch()" />
+      </nz-input-group>
+      <ng-template #suffixIconSearch><span nz-icon nzType="search"></span></ng-template>
+    </div>
+
+    <div class="add-section">
+      <input nz-input nzSize="large" placeholder="Ne yapılması gerekiyor?" [(ngModel)]="newTodoTitle" (keyup.enter)="addTodo()" />
       
-      <div class="extra-inputs">
-        <input type="text" [(ngModel)]="newTodoDescription" placeholder="Açıklama (Opsiyonel)">
-        <div class="date-container">
-          <label>Bitiş:</label>
-          <input type="date" [(ngModel)]="newTodoDueDate">
+      <div class="extra-controls" nz-row [nzGutter]="8">
+        <div nz-col nzSpan="12">
+          <input nz-input placeholder="Açıklama (Opsiyonel)" [(ngModel)]="newTodoDescription" />
         </div>
-        <button class="add-btn" (click)="addTodo()">Ekle</button>
+        <div nz-col nzSpan="8">
+          <nz-date-picker style="width: 100%;" nzPlaceHolder="Bitiş Tarihi" [(ngModel)]="newTodoDueDate"></nz-date-picker>
+        </div>
+        <div nz-col nzSpan="4">
+          <button nz-button nzType="primary" nzBlock (click)="addTodo()">Ekle</button>
+        </div>
       </div>
-    </header>
+    </div>
 
-    <section class="main" *ngIf="todos.length > 0">
-      <ul class="todo-list">
-        <li *ngFor="let t of todos" [class.completed]="t.isCompleted">
-          <div class="view">
-            <input class="toggle" type="checkbox" [(ngModel)]="t.isCompleted" (change)="updateTodo(t)">
-            
-            <div class="todo-content">
-              <input class="edit-input" 
-                     [(ngModel)]="t.title" 
-                     (blur)="updateTodo(t)" 
-                     (keyup.enter)="updateTodo(t)">
-                     
-              <span class="desc-text" *ngIf="t.description">{{ t.description }}</span>
-              <span class="date-tag" *ngIf="t.dueDate">📅 {{ t.dueDate | date:'dd.MM.yyyy' }}</span>
-            </div>
+    <nz-list [nzLoading]="false" nzBordered>
+      @for (item of todos; track item.id) {
+        <nz-list-item [nzContent]="todoContent" [nzActions]="[deleteAction]">
+          <nz-list-item-meta
+            [nzTitle]="todoTitle"
+            [nzDescription]="item.description">
+            <ng-template #todoTitle>
+              <label nz-checkbox [(ngModel)]="item.isCompleted" (ngModelChange)="updateTodo(item)" [class.completed-text]="item.isCompleted">
+                {{ item.title }}
+              </label>
+            </ng-template>
+          </nz-list-item-meta>
+          
+          <ng-template #todoContent>
+            @if (item.dueDate) {
+              <nz-tag nzColor="blue">📅 {{ item.dueDate | date:'dd.MM.yyyy' }}</nz-tag>
+            }
+          </ng-template>
+          
+          <ng-template #deleteAction>
+            <button nz-button nzType="text" nzDanger (click)="delete(item.id)">
+              <span nz-icon nzType="delete"></span>
+            </button>
+          </ng-template>
+        </nz-list-item>
+      } @empty {
+        <nz-empty nzNotFoundImage="simple"></nz-empty>
+      }
+    </nz-list>
 
-            <button class="destroy" (click)="delete(t.id)"></button>
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <footer class="footer" *ngIf="todos.length > 0">
-      <span class="todo-count"><strong>{{ todos.length }}</strong> görev listede</span>
-      <button (click)="logout()" class="logout-link">Güvenli Çıkış</button>
-    </footer>
-  </div>
+    <div class="footer-area">
+      <span>Toplam <strong>{{ totalCount }}</strong> görev</span>
+      <nz-pagination 
+        [nzPageIndex]="currentPage" 
+        [nzTotal]="totalCount" 
+        [nzPageSize]="pageSize" 
+        (nzPageIndexChange)="onPageChange($event)"
+        nzSize="small">
+      </nz-pagination>
+      <button nz-button nzType="link" (click)="logout()">Çıkış Yap</button>
+    </div>
+  </nz-card>
 </div>

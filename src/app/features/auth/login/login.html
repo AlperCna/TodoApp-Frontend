@@ -1,23 +1,28 @@
-<div class="app-wrapper">
-  <h1 class="main-title">login</h1>
+<div class="login-wrapper">
+  <nz-card class="login-card" nzTitle="Giriş Yap">
+    <form nz-form [formGroup]="validateForm" (ngSubmit)="onLogin()">
+      
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Lütfen geçerli bir e-posta adresi girin!">
+          <nz-input-group nzPrefixIcon="mail">
+            <input type="email" nz-input formControlName="email" placeholder="E-posta Adresi" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
 
-  <div class="auth-card">
-    <form (submit)="onLogin()">
-      <div class="input-group">
-        <input type="email" name="email" [(ngModel)]="loginData.email" 
-               placeholder="E-posta Adresi" required autofocus>
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Lütfen şifrenizi girin!">
+          <nz-input-group nzPrefixIcon="lock">
+            <input type="password" nz-input formControlName="password" placeholder="Şifre" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <button nz-button nzType="primary" nzBlock class="login-btn">Giriş Yap</button>
+
+      <div class="login-footer">
+        <a routerLink="/register">Henüz hesabın yok mu? Kayıt Ol</a>
       </div>
-
-      <div class="input-group">
-        <input type="password" name="password" [(ngModel)]="loginData.password" 
-               placeholder="Şifre" required>
-      </div>
-
-      <button type="submit" class="auth-btn">Giriş Yap</button>
     </form>
-
-    <footer class="auth-footer">
-      <a routerLink="/register" class="switch-link">Henüz hesabın yok mu? Kayıt Ol</a>
-    </footer>
-  </div>
+  </nz-card>
 </div>

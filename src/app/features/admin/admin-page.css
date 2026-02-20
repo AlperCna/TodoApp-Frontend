@@ -1,0 +1,31 @@
+.admin-layout {
+  padding: 30px;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+.site-page-header {
+  background: #fff;
+  border: 1px solid #ebedf0;
+  margin-bottom: 24px;
+  border-radius: 8px;
+}
+
+.stats-row {
+  margin-bottom: 24px;
+}
+
+nz-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.ant-statistic-content {
+  font-weight: bold;
+}
+
+/* Tablo içindeki başlıkların daha net görünmesi için */
+th {
+  background-color: #fafafa !important;
+  font-weight: 600 !important;
+}

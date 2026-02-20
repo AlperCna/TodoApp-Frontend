@@ -1,1 +1,26 @@
-<router-outlet></router-outlet>
+@if (isAuthPage) {
+  <router-outlet></router-outlet>
+} 
+@else {
+  <nz-layout class="app-layout" style="min-height: 100vh;">
+    <nz-sider nzCollapsible nzWidth="256px" nzTheme="dark">
+      <div style="height: 64px; color: white; display: flex; align-items: center; justify-content: center;">
+         <h2 style="color: white; margin: 0;">Todo App</h2>
+      </div>
+      <ul nz-menu nzTheme="dark" nzMode="inline">
+        <li nz-menu-item nzMatchRouter>
+          <a routerLink="/todos"><span nz-icon nzType="check-square"></span><span>Görevlerim</span></a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <a routerLink="/admin"><span nz-icon nzType="lock"></span><span>Admin Paneli</span></a>
+        </li>
+      </ul>
+    </nz-sider>
+    
+    <nz-layout>
+      <nz-content style="background: #f0f2f5; padding: 24px;">
+        <router-outlet></router-outlet>
+      </nz-content>
+    </nz-layout>
+  </nz-layout>
+}
