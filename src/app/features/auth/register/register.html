@@ -1,43 +1,82 @@
 <div class="register-wrapper">
-  <nz-card class="register-card" nzTitle="Yeni Hesap Oluştur">
-    <form nz-form [formGroup]="validateForm" (ngSubmit)="onRegister()">
+  <nz-card class="register-card" [nzBordered]="false">
+    <div class="register-header">
+      <div class="register-logo">
+        <span nz-icon nzType="bank" nzTheme="twotone" [nzTwotoneColor]="'#d32f2f'"></span>
+      </div>
+      <h1 class="register-title">Yeni Hesap Oluştur</h1>
+      <p class="register-subtitle">Şirketine katıl veya kendi alanını kur</p>
+    </div>
+
+    <form nz-form [formGroup]="validateForm" (ngSubmit)="onRegister()" nzLayout="vertical">
       
       <nz-form-item>
+        <nz-form-label nzRequired>Şirket Adı (Workspace)</nz-form-label>
+        <nz-form-control nzErrorTip="Lütfen bir şirket adı girin veya listeden seçin!">
+          <nz-input-group nzPrefixIcon="bank">
+            <input
+              nz-input
+              placeholder="Örn: Alper Global Lojistik"
+              formControlName="tenantName"
+              [nzAutocomplete]="auto"
+            />
+            <nz-autocomplete #auto>
+              @for (tenant of tenants; track tenant) {
+                <nz-auto-option [nzValue]="tenant">{{ tenant }}</nz-auto-option>
+              }
+            </nz-autocomplete>
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Kullanıcı Adı</nz-form-label>
         <nz-form-control nzErrorTip="En az 3 karakterli bir kullanıcı adı girin!">
           <nz-input-group nzPrefixIcon="user">
-            <input type="text" nz-input formControlName="username" placeholder="Kullanıcı Adı" />
+            <input type="text" nz-input formControlName="username" placeholder="Kullanıcı adınız" />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
+        <nz-form-label nzRequired>E-posta</nz-form-label>
         <nz-form-control nzErrorTip="Geçerli bir e-posta adresi girin!">
           <nz-input-group nzPrefixIcon="mail">
-            <input type="email" nz-input formControlName="email" placeholder="E-posta Adresi" />
+            <input type="email" nz-input formControlName="email" placeholder="ornek@mail.com" />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-control nzErrorTip="Şifre en az 6 karakter olmalıdır!">
-          <nz-input-group nzPrefixIcon="lock">
-            <input type="password" nz-input formControlName="password" (ngModelChange)="updateConfirmValidator()" placeholder="Şifre" />
-          </nz-input-group>
-        </nz-form-control>
-      </nz-form-item>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Şifre</nz-form-label>
+            <nz-form-control nzErrorTip="En az 6 karakter!">
+              <nz-input-group nzPrefixIcon="lock">
+                <input type="password" nz-input formControlName="password" (ngModelChange)="updateConfirmValidator()" placeholder="******" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Doğrulama</nz-form-label>
+            <nz-form-control nzErrorTip="Şifreler uyuşmuyor!">
+              <nz-input-group nzPrefixIcon="lock">
+                <input type="password" nz-input formControlName="confirmPassword" placeholder="******" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
 
-      <nz-form-item>
-        <nz-form-control nzErrorTip="Girdiğiniz şifreler uyuşmuyor!">
-          <nz-input-group nzPrefixIcon="lock">
-            <input type="password" nz-input formControlName="confirmPassword" placeholder="Şifreyi Tekrarla" />
-          </nz-input-group>
-        </nz-form-control>
-      </nz-form-item>
-
-      <button nz-button nzType="primary" nzBlock class="register-btn">Kayıt Ol</button>
+      <button nz-button nzType="primary" nzBlock class="register-btn" [nzLoading]="loading">
+        <span nz-icon nzType="user-add"></span> Kayıt Ol
+      </button>
 
       <div class="register-footer">
-        <a routerLink="/login">Zaten hesabın var mı? Giriş yap</a>
+        <span>Zaten bir hesabın var mı?</span><br>
+        <a routerLink="/login">Hemen Giriş Yap</a>
       </div>
     </form>
   </nz-card>

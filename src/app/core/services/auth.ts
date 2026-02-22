@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, of } from 'rxjs'; // 'of' eklendi
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
 
@@ -15,10 +15,9 @@ export class AuthService {
       tap(res => {
         if (!res?.token) return;
 
-        // Yeni token'ı hemen kaydediyoruz
-        localStorage.setItem('token', res.token);
+        // ✅ EKLEME: Sadece token değil, refreshToken'ı da kaydediyoruz
+        this.saveTokens(res.token, res.refreshToken);
 
-        // Yeni token ile kontrol yapıp yönlendiriyoruz
         if (this.isAdmin()) {
           console.log('✅ Admin girişi başarılı, panele gidiliyor...');
           this.router.navigate(['/admin']);
@@ -30,17 +29,52 @@ export class AuthService {
     );
   }
 
+  // ✅ YENİ: Backend'den yeni bir Access Token isteyen sessiz yenileme metodu
+  refreshToken(): Observable<any> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) return of(null);
+
+    return this.http.post<any>(`${this.apiUrl}/refresh-token`, { refreshToken }).pipe(
+      tap(res => {
+        // Yenileme başarılıysa yeni token çiftini kaydediyoruz
+        this.saveTokens(res.token, res.refreshToken);
+      })
+    );
+  }
+
+  // ✅ YENİ: Token'ları yerel hafızaya kaydeden yardımcı metod
+  private saveTokens(token: string, refreshToken: string) {
+    localStorage.setItem('token', token);
+    localStorage.setItem('refreshToken', refreshToken); //
+  }
+
   register(userData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, userData);
   }
 
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken'); // ✅ EKLEME: Refresh token'ı da temizliyoruz
     this.router.navigate(['/login']);
   }
 
   getToken() {
     return localStorage.getItem('token');
+  }
+
+  // Token içindeki TenantId bilgisini döner
+  getTenantId(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    const payload = this.parseJwt(token);
+    if (!payload) return null;
+
+    return payload['tenantId'] || null;
+  }
+
+  getTenants(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/tenants`);
   }
 
   private parseJwt(token: string): any {
@@ -63,7 +97,6 @@ export class AuthService {
     const payload = this.parseJwt(token);
     if (!payload) return null;
 
-    // image_c97c41'deki Microsoft claim yapısını tam olarak yakalıyoruz
     return (
       payload['role'] || 
       payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
@@ -74,12 +107,9 @@ export class AuthService {
 
   isAdmin(): boolean {
     const role = this.getRole();
-    
-    // Bazen roller dizi (Array) olarak gelebilir, bunu da destekliyoruz
     if (Array.isArray(role)) {
       return role.some(r => r.toLowerCase() === 'admin');
     }
-    
     return role?.toLowerCase() === 'admin'; 
   }
 

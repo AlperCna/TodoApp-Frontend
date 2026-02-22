@@ -1,31 +1,43 @@
 <div class="admin-layout">
-  <nz-page-header class="site-page-header" nzTitle="🛡️ Yönetim Paneli" nzSubtitle="Sistem genel durum ve veri yönetimi">
+  <nz-page-header class="site-page-header" nzTitle="Yönetim Paneli">
+    <nz-page-header-subtitle>
+      Şirket genel durumu ve operasyonel veriler
+      <nz-tag class="tenant-badge" *ngIf="currentTenantId">
+        <span nz-icon nzType="global"></span> Şirket ID: {{ currentTenantId }}
+      </nz-tag>
+    </nz-page-header-subtitle>
+
     <nz-page-header-extra>
-      <button nz-button nzType="primary" nzDanger (click)="logout()">
-        <span nz-icon nzType="logout"></span> Güvenli Çıkış
-      </button>
+      <nz-space>
+        <button *nzSpaceItem nz-button nzType="default" (click)="refreshData()">
+          <span nz-icon nzType="reload"></span> Yenile
+        </button>
+        <button *nzSpaceItem nz-button nzType="primary" nzDanger class="admin-logout-btn" (click)="logout()">
+          <span nz-icon nzType="logout"></span> Güvenli Çıkış
+        </button>
+      </nz-space>
     </nz-page-header-extra>
   </nz-page-header>
 
-  <div nz-row [nzGutter]="16" class="stats-row">
+  <div nz-row [nzGutter]="16" class="stats-row" style="margin-bottom: 24px;">
     <div nz-col [nzSpan]="12">
-      <nz-card>
+      <nz-card class="stat-card">
         <nz-statistic
           [nzValue]="users.length"
-          [nzTitle]="'Toplam Kullanıcı'"
+          [nzTitle]="'Aktif Çalışanlar'"
           [nzPrefix]="prefixUsers"
-          [nzValueStyle]="{ color: '#3F51B5' }">
+          [nzValueStyle]="{ color: '#d32f2f', fontWeight: '800' }">
         </nz-statistic>
         <ng-template #prefixUsers><span nz-icon nzType="team"></span></ng-template>
       </nz-card>
     </div>
     <div nz-col [nzSpan]="12">
-      <nz-card>
+      <nz-card class="stat-card">
         <nz-statistic
           [nzValue]="allTodos.length"
-          [nzTitle]="'Sistemdeki Toplam Görev'"
+          [nzTitle]="'Toplam İş Yükü'"
           [nzPrefix]="prefixTodos"
-          [nzValueStyle]="{ color: '#4CAF50' }">
+          [nzValueStyle]="{ color: '#1890ff', fontWeight: '800' }">
         </nz-statistic>
         <ng-template #prefixTodos><span nz-icon nzType="ordered-list"></span></ng-template>
       </nz-card>
@@ -34,22 +46,25 @@
 
   <div nz-row [nzGutter]="24">
     <div nz-col [nzLg]="10" [nzXs]="24">
-      <nz-card nzTitle="👤 Kayıtlı Kullanıcılar" [nzExtra]="userExtra">
+      <nz-card nzTitle="Şirket Kullanıcıları" class="data-card" [nzExtra]="userExtra">
         <nz-table #userTable [nzData]="users" nzSize="middle" [nzPageSize]="5">
           <thead>
             <tr>
-              <th>Kullanıcı</th>
-              <th>E-posta</th>
+              <th>Ad Soyad</th>
               <th>Rol</th>
             </tr>
           </thead>
           <tbody>
             @for (user of userTable.data; track user.id) {
               <tr>
-                <td><strong>{{ user.userName }}</strong></td>
-                <td>{{ user.email }}</td>
                 <td>
-                  <nz-tag [nzColor]="user.role === 'Admin' ? 'error' : 'processing'">
+                  <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: 600; color: #262626;">{{ user.userName }}</span>
+                    <span style="font-size: 12px; color: #8c8c8c;">{{ user.email }}</span>
+                  </div>
+                </td>
+                <td>
+                  <nz-tag [nzColor]="user.role === 'Admin' ? 'red' : 'blue'">
                     {{ user.role }}
                   </nz-tag>
                 </td>
@@ -58,31 +73,26 @@
           </tbody>
         </nz-table>
       </nz-card>
-      <ng-template #userExtra><span nz-icon nzType="user"></span></ng-template>
+      <ng-template #userExtra><span nz-icon nzType="user" style="color: #d32f2f"></span></ng-template>
     </div>
 
     <div nz-col [nzLg]="14" [nzXs]="24">
-      <nz-card nzTitle="📝 Sistemdeki Tüm Görevler" [nzExtra]="todoExtra">
-        <nz-table 
-          #todoTable 
-          [nzData]="allTodos" 
-          [nzLoading]="loading"
-          [nzPageSize]="10"
-          nzSize="middle">
+      <nz-card nzTitle="Tüm Görevlerin Takibi" class="data-card" [nzExtra]="todoExtra">
+        <nz-table #todoTable [nzData]="allTodos" [nzLoading]="loading" [nzPageSize]="8" nzSize="middle">
           <thead>
             <tr>
-              <th nzWidth="60%">Görev Başlığı</th>
+              <th nzWidth="70%">Görev Detayı</th>
               <th>Durum</th>
             </tr>
           </thead>
           <tbody>
             @for (todo of todoTable.data; track todo.id) {
               <tr>
-                <td>{{ todo.title }}</td>
+                <td style="color: #434343;">{{ todo.title }}</td>
                 <td>
-                  <nz-tag [nzColor]="todo.isCompleted ? 'success' : 'warning'">
+                  <nz-tag [nzColor]="todo.isCompleted ? 'green' : 'orange'" style="border-radius: 12px; padding: 0 10px;">
                     <span nz-icon [nzType]="todo.isCompleted ? 'check-circle' : 'clock-circle'"></span>
-                    {{ todo.isCompleted ? 'Tamamlandı' : 'Bekliyor' }}
+                    {{ todo.isCompleted ? 'Bitti' : 'Bekliyor' }}
                   </nz-tag>
                 </td>
               </tr>
@@ -90,7 +100,7 @@
           </tbody>
         </nz-table>
       </nz-card>
-      <ng-template #todoExtra><span nz-icon nzType="profile"></span></ng-template>
+      <ng-template #todoExtra><span nz-icon nzType="project" style="color: #1890ff"></span></ng-template>
     </div>
   </div>
 </div>

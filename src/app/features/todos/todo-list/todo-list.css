@@ -1,44 +1,180 @@
 .todo-container {
-  max-width: 600px;
-  margin: 50px auto;
-  padding: 0 20px;
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px;
 }
 
-.todo-logo {
-  font-size: 80px;
-  font-weight: 100;
-  text-align: center;
-  color: rgba(175, 47, 47, 0.15);
-  margin-bottom: 20px;
+/* --- Başlık Alanı --- */
+.workspace-header {
+  margin-bottom: 30px;
 }
 
-.todo-card {
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  border-radius: 8px;
+.workspace-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 4px;
 }
 
-.search-section, .add-section {
-  margin-bottom: 20px;
+.workspace-desc {
+  color: #8c8c8c;
+  font-size: 15px;
 }
 
-.extra-controls {
-  margin-top: 10px;
+/* --- Yeni Nesil Giriş Kutusu --- */
+.action-center {
+  margin-bottom: 24px;
 }
 
-.completed-text {
-  text-decoration: line-through;
-  color: #d9d9d9;
+.modern-search {
+  margin-bottom: 16px;
 }
 
-.footer-area {
-  margin-top: 20px;
+.modern-search input {
+  border-radius: 12px !important;
+  border: 1px solid #eee !important;
+  background: #fcfcfc;
+  height: 40px;
+}
+
+.creation-box {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+}
+
+.creation-box:focus-within {
+  box-shadow: 0 8px 24px rgba(211, 47, 47, 0.08);
+  border-color: #d32f2f50;
+}
+
+.main-input {
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 18px !important;
+  font-weight: 600;
+  padding: 0 0 12px 0 !important;
+  border-bottom: 1px solid #f5f5f5 !important;
+  border-radius: 0 !important;
+}
+
+.creation-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #888;
+  margin-top: 12px;
 }
 
-/* Listeyi daha ferah yapalım */
-nz-list-item {
-  padding: 12px 16px !important;
+.input-extras {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.desc-input {
+  border: none !important;
+  background: #f9f9f9;
+  border-radius: 6px !important;
+  font-size: 13px;
+  width: 50%;
+}
+
+.modern-picker {
+  border: none !important;
+  background: #f9f9f9;
+  border-radius: 6px !important;
+}
+
+.modern-add-btn {
+  background: #d32f2f !important;
+  border: none !important;
+  height: 36px;
+  border-radius: 8px !important;
+  font-weight: 600;
+  margin-left: 15px;
+}
+
+/* --- 🎯 Modern Yuvarlak Checkbox Tasarımı --- */
+::ng-deep .ant-checkbox-inner {
+  border-radius: 50% !important; /* Kareyi yuvarlak yap */
+  width: 20px !important;
+  height: 20px !important;
+  border: 2px solid #d9d9d9 !important;
+  transition: all 0.3s;
+}
+
+::ng-deep .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #52c41a !important; /* Tamamlanınca yeşil */
+  border-color: #52c41a !important;
+}
+
+/* --- ✍️ Satır İçi Düzenleme (Inline Input) Tasarımı --- */
+.title-inline-edit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.inline-input {
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 16px;
+  padding: 4px 8px;
+  transition: all 0.2s;
+  width: 100%;
+  border-radius: 4px !important;
+}
+
+.inline-input:hover, .inline-input:focus {
+  background: #f9f9f9 !important;
+  border: 1px solid #eee !important;
+}
+
+/* Tamamlanan metin stili */
+.completed-text {
+  text-decoration: line-through;
+  color: #bfbfbf !important;
+  opacity: 0.8;
+}
+
+.desc-inline-input {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-top: -4px;
+}
+
+/* --- Diğer --- */
+.list-card {
+  border-radius: 16px !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important;
+}
+
+.date-badge {
+  font-size: 12px;
+  background: #fff1f0;
+  color: #d32f2f;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.modern-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+  color: #8c8c8c;
+}
+
+.modern-logout-btn {
+  color: #d32f2f !important;
+  font-weight: 500;
+  padding: 0;
 }

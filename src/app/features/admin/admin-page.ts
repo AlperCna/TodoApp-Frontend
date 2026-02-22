@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // ✅ ChangeDetectorRef eklendi
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth';
 import { AdminService } from '../../core/services/admin';
@@ -13,6 +13,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
 
 @Component({
   selector: 'app-admin-page',
@@ -27,7 +28,8 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
     NzIconModule,
     NzPageHeaderModule,
     NzSpaceModule,
-    NzButtonModule
+    NzButtonModule,
+    NzTypographyModule
   ],
   templateUrl: './admin-page.html',
   styleUrl: './admin-page.css'
@@ -36,32 +38,51 @@ export class AdminPage implements OnInit {
   users: any[] = [];
   allTodos: any[] = [];
   loading = true;
+  currentTenantId: string | null = '';
 
   constructor(
     private auth: AuthService, 
-    private admin: AdminService
+    private admin: AdminService,
+    private cdr: ChangeDetectorRef // ✅ Hatalı olan 'cdr' özelliği buraya enjekte edilerek çözüldü
   ) {}
 
   ngOnInit(): void {
+    // ✅ Token içinden Tenant ID'yi alıp değişkene atıyoruz
+    this.currentTenantId = this.auth.getTenantId();
     this.refreshData();
   }
 
+  // ✅ Verileri yenilemek için kullanılan, NG0100 hatasını önleyen metot
   refreshData() {
     this.loading = true;
-    // Kullanıcıları getir
+
+    // 👥 Kullanıcı verilerini çekiyoruz
     this.admin.getUsers().subscribe({
       next: (data) => {
-        this.users = data;
+        // ✅ State güncellemesini setTimeout ile bir sonraki "tick"e atarak 
+        // "ExpressionChangedAfterItHasBeenCheckedError" hatasını engelliyoruz
+        setTimeout(() => {
+          this.users = data;
+          this.cdr.markForCheck(); // Değişiklikleri Angular'a bildiriyoruz
+        });
       }
     });
 
-    // Todoları getir
+    // 📝 Görev verilerini çekiyoruz
     this.admin.getTodos().subscribe({
       next: (data) => {
-        this.allTodos = data;
-        this.loading = false;
+        setTimeout(() => {
+          this.allTodos = data;
+          this.loading = false; // İşlem bitti
+          this.cdr.markForCheck();
+        });
       },
-      error: () => this.loading = false
+      error: () => {
+        setTimeout(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        });
+      }
     });
   }
 

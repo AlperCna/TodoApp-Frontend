@@ -55,7 +55,6 @@ export class TodoList implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadTodos();
 
-    // ✅ RxJS Arama Mantığı (Aynen Korundu)
     this.searchSubscription = this.searchSubject.pipe(
       debounceTime(400),
       distinctUntilChanged()
@@ -72,9 +71,12 @@ export class TodoList implements OnInit, OnDestroy {
   loadTodos() {
     this.todoService.getTodos(this.currentPage, this.pageSize, this.searchTerm).subscribe({
       next: (res: any) => {
-        this.todos = res.items || [];
-        this.totalCount = res.totalCount || 0;
-        this.cdr.detectChanges();
+        // ✅ NG0100 hatasını önlemek için (image_214121.png)
+        setTimeout(() => {
+          this.todos = res.items || [];
+          this.totalCount = res.totalCount || 0;
+          this.cdr.markForCheck(); 
+        });
       },
       error: () => this.message.error('Veriler yüklenirken bir hata oluştu!')
     });
@@ -104,9 +106,14 @@ export class TodoList implements OnInit, OnDestroy {
     });
   }
 
+  // ✅ Mevcut update metodun (Üstüne basıp değiştirince tetiklenecek)
   updateTodo(todo: any) {
     this.todoService.updateTodo(todo.id, todo).subscribe({
-      next: () => this.cdr.detectChanges()
+      next: () => {
+        this.cdr.detectChanges();
+        this.message.success('Görev güncellendi.');
+      },
+      error: () => this.loadTodos() // Hata olursa eski haline dönsün
     });
   }
 

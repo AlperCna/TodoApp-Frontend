@@ -1,46 +1,66 @@
 <div class="todo-container">
-  <h1 class="todo-logo">todos</h1>
+  <div class="workspace-header">
+    <h1 class="workspace-title">Görevlerim</h1>
+    <p class="workspace-desc">Şirketiniz için bugün neler yapacaksınız?</p>
+  </div>
 
-  <nz-card [nzBordered]="false" class="todo-card">
-    <div class="search-section">
-      <nz-input-group [nzSuffix]="suffixIconSearch">
-        <input type="text" nz-input placeholder="Görevlerde ara..." [(ngModel)]="searchTerm" (input)="onSearch()" />
+  <div class="action-center">
+    <div class="modern-search">
+      <nz-input-group [nzPrefix]="prefixIconSearch">
+        <input type="text" nz-input placeholder="Hızlıca ara..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </nz-input-group>
-      <ng-template #suffixIconSearch><span nz-icon nzType="search"></span></ng-template>
+      <ng-template #prefixIconSearch><span nz-icon nzType="search" class="search-icon"></span></ng-template>
     </div>
 
-    <div class="add-section">
-      <input nz-input nzSize="large" placeholder="Ne yapılması gerekiyor?" [(ngModel)]="newTodoTitle" (keyup.enter)="addTodo()" />
+    <div class="creation-box">
+      <input nz-input class="main-input" placeholder="Yeni bir görev ekle..." [(ngModel)]="newTodoTitle" (keyup.enter)="addTodo()" />
       
-      <div class="extra-controls" nz-row [nzGutter]="8">
-        <div nz-col nzSpan="12">
-          <input nz-input placeholder="Açıklama (Opsiyonel)" [(ngModel)]="newTodoDescription" />
+      <div class="creation-footer">
+        <div class="input-extras">
+          <input nz-input class="desc-input" placeholder="Açıklama (isteğe bağlı)" [(ngModel)]="newTodoDescription" />
+          <nz-date-picker class="modern-picker" nzPlaceHolder="Tarih Seç" [(ngModel)]="newTodoDueDate"></nz-date-picker>
         </div>
-        <div nz-col nzSpan="8">
-          <nz-date-picker style="width: 100%;" nzPlaceHolder="Bitiş Tarihi" [(ngModel)]="newTodoDueDate"></nz-date-picker>
-        </div>
-        <div nz-col nzSpan="4">
-          <button nz-button nzType="primary" nzBlock (click)="addTodo()">Ekle</button>
-        </div>
+        <button nz-button nzType="primary" class="modern-add-btn" (click)="addTodo()">
+          <span nz-icon nzType="plus"></span> Görev Ekle
+        </button>
       </div>
     </div>
+  </div>
 
-    <nz-list [nzLoading]="false" nzBordered>
+  <nz-card [nzBordered]="false" class="todo-card list-card">
+    <nz-list [nzLoading]="false" class="todo-list-wrapper">
       @for (item of todos; track item.id) {
         <nz-list-item [nzContent]="todoContent" [nzActions]="[deleteAction]">
-          <nz-list-item-meta
-            [nzTitle]="todoTitle"
-            [nzDescription]="item.description">
+          <nz-list-item-meta [nzTitle]="todoTitle" [nzDescription]="todoDesc">
+            
             <ng-template #todoTitle>
-              <label nz-checkbox [(ngModel)]="item.isCompleted" (ngModelChange)="updateTodo(item)" [class.completed-text]="item.isCompleted">
-                {{ item.title }}
-              </label>
+              <div class="title-inline-edit">
+                <label nz-checkbox [(ngModel)]="item.isCompleted" (ngModelChange)="updateTodo(item)"></label>
+                <input nz-input 
+                       class="inline-input" 
+                       [(ngModel)]="item.title" 
+                       (blur)="updateTodo(item)" 
+                       [class.completed-text]="item.isCompleted" />
+              </div>
             </ng-template>
+
+            <ng-template #todoDesc>
+              <div style="padding-left: 32px;">
+                <input nz-input 
+                       class="inline-input desc-inline-input" 
+                       [(ngModel)]="item.description" 
+                       (blur)="updateTodo(item)" 
+                       placeholder="Açıklama ekle..." />
+              </div>
+            </ng-template>
+
           </nz-list-item-meta>
           
           <ng-template #todoContent>
             @if (item.dueDate) {
-              <nz-tag nzColor="blue">📅 {{ item.dueDate | date:'dd.MM.yyyy' }}</nz-tag>
+              <span class="date-badge" [class.overdue]="!item.isCompleted">
+                <span nz-icon nzType="calendar"></span> {{ item.dueDate | date:'dd MMM' }}
+              </span>
             }
           </ng-template>
           
@@ -55,16 +75,21 @@
       }
     </nz-list>
 
-    <div class="footer-area">
-      <span>Toplam <strong>{{ totalCount }}</strong> görev</span>
+    <div class="modern-footer">
+      <span class="count-info"><strong>{{ totalCount }}</strong> toplam görev</span>
+      
       <nz-pagination 
         [nzPageIndex]="currentPage" 
         [nzTotal]="totalCount" 
         [nzPageSize]="pageSize" 
-        (nzPageIndexChange)="onPageChange($event)"
-        nzSize="small">
+        (nzPageIndexChange)="onPageChange($event)" 
+        nzSize="small"
+        nzHideOnSinglePage>
       </nz-pagination>
-      <button nz-button nzType="link" (click)="logout()">Çıkış Yap</button>
+
+      <button nz-button nzType="link" class="modern-logout-btn" (click)="logout()">
+        <span nz-icon nzType="logout"></span> Güvenli Çıkış
+      </button>
     </div>
   </nz-card>
 </div>

@@ -1,25 +1,83 @@
 .register-wrapper {
-  /* Flexbox ile tam ortalama */
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  
-  /* Ekranı kapla */
-  position: fixed !important; /* Sidebar'ın bıraktığı hayalet boşluğu ezer */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100vw !important;
-  height: 100vh !important;
-  
-  /* Görsel ayarlar */
-  background-color: #f0f2f5; 
-  z-index: 1000; /* Diğer her şeyin üstüne çıkar */
+  width: 100vw;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 1000;
+  overflow: auto;
 }
 
 .register-card {
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0 !important;
+  margin: 20px;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.register-logo {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.register-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.register-subtitle {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.register-btn {
+  height: 45px;
+  font-weight: 600;
+  background: #d32f2f;
+  border-color: #d32f2f;
+  margin-top: 10px;
   border-radius: 8px;
-  background: #fff;
+}
+
+.register-btn:hover {
+  background: #b71c1c;
+  border-color: #b71c1c;
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.register-footer a {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+/* NG-ZORRO Focus Rengi */
+::ng-deep .ant-input-affix-wrapper-focused,
+::ng-deep .ant-input:focus {
+    border-color: #d32f2f !important;
+    box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.1) !important;
 }

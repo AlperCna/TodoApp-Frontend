@@ -31,6 +31,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 })
 export class Login {
   validateForm: UntypedFormGroup;
+  loading = false; // ✅ Buton animasyonu için eklendi
 
   constructor(
     private fb: UntypedFormBuilder, 
@@ -38,7 +39,6 @@ export class Login {
     private router: Router,
     private message: NzMessageService
   ) {
-    // Backend tam olarak hangi isimleri bekliyorsa onu yazıyoruz (genelde email ve password)
     this.validateForm = this.fb.group({
       email: [null, [Validators.required, Validators.email]],
       password: [null, [Validators.required]]
@@ -47,23 +47,20 @@ export class Login {
 
   onLogin(): void {
     if (this.validateForm.valid) {
-      // ✅ Form verilerini tek paket olarak alıyoruz
-      const payload = this.validateForm.value;
-      console.log('Giriş isteği gönderiliyor:', payload);
-
-      this.auth.login(payload).subscribe({
+      this.loading = true; // İşlem başladı
+      
+      this.auth.login(this.validateForm.value).subscribe({
         next: (response) => {
           this.message.success('Giriş başarılı! Hoş geldiniz.');
-          this.router.navigate(['/todos']); // Giriş sonrası gidilecek sayfa
+          this.loading = false;
+          // AuthService içindeki yönlendirme mantığı (isAdmin vb.) çalışacaktır
         },
         error: (err) => {
-          console.error('Giriş Hatası:', err);
-          // 401 hatası burada yakalanır
-          this.message.error('Giriş başarısız! E-posta veya şifre hatalı.');
+          this.loading = false;
+          this.message.error('Giriş başarısız! Bilgilerinizi kontrol edin.');
         }
       });
     } else {
-      // Hataları kullanıcıya göster
       Object.values(this.validateForm.controls).forEach(control => {
         if (control.invalid) {
           control.markAsDirty();
