@@ -9,6 +9,13 @@
 
     <nz-page-header-extra>
       <nz-space>
+        <nz-input-group *nzSpaceItem [nzSuffix]="suffixIconSearch" style="width: 250px;">
+          <input type="text" nz-input placeholder="Görevlerde ara..." [(ngModel)]="searchText" (keyup.enter)="onSearch()" />
+        </nz-input-group>
+        <ng-template #suffixIconSearch>
+          <span nz-icon nzType="search" (click)="onSearch()" style="cursor: pointer;"></span>
+        </ng-template>
+
         <button *nzSpaceItem nz-button nzType="default" (click)="refreshData()">
           <span nz-icon nzType="reload"></span> Yenile
         </button>
@@ -34,8 +41,8 @@
     <div nz-col [nzSpan]="12">
       <nz-card class="stat-card">
         <nz-statistic
-          [nzValue]="allTodos.length"
-          [nzTitle]="'Toplam İş Yükü'"
+          [nzValue]="totalCount"
+          [nzTitle]="'Toplam İş Yükü (Filtrelenmiş)'"
           [nzPrefix]="prefixTodos"
           [nzValueStyle]="{ color: '#1890ff', fontWeight: '800' }">
         </nz-statistic>
@@ -78,7 +85,16 @@
 
     <div nz-col [nzLg]="14" [nzXs]="24">
       <nz-card nzTitle="Tüm Görevlerin Takibi" class="data-card" [nzExtra]="todoExtra">
-        <nz-table #todoTable [nzData]="allTodos" [nzLoading]="loading" [nzPageSize]="8" nzSize="middle">
+        <nz-table 
+          #todoTable 
+          [nzData]="allTodos" 
+          [nzLoading]="loading" 
+          [nzTotal]="totalCount" 
+          [(nzPageIndex)]="pageIndex" 
+          [(nzPageSize)]="pageSize"
+          [nzFrontPagination]="false"
+          (nzPageIndexChange)="onPageIndexChange($event)"
+          nzSize="middle">
           <thead>
             <tr>
               <th nzWidth="70%">Görev Detayı</th>

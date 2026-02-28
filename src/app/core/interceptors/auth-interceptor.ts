@@ -7,7 +7,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
-  // 1️⃣ İsteklere mevcut Access Token'ı ekle
+  // İsteklere mevcut Access Token'ı ekle
   let authReq = req;
   if (token) {
     authReq = req.clone({
@@ -15,7 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     });
   }
 
-  // 2️⃣ Hata takibi ve 401 (Unauthorized) yönetimi
+  // 2Hata takibi ve 401 (Unauthorized) yönetimi
   return next(authReq).pipe(
     catchError((error) => {
       // Eğer hata 401 ise ve bu bir login isteği değilse sessiz yenilemeyi başlat
@@ -42,7 +42,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError((refreshErr) => {
             // Refresh Token'ın süresi dolmuşsa veya hata verirse kullanıcıyı dışarı at
-            console.error('❌ Oturum süresi tamamen dolmuş. Giriş sayfasına yönlendiriliyor.');
+            console.error(' Oturum süresi tamamen dolmuş. Giriş sayfasına yönlendiriliyor.');
             authService.logout();
             return throwError(() => refreshErr);
           })

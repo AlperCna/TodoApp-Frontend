@@ -31,7 +31,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 })
 export class Login {
   validateForm: UntypedFormGroup;
-  loading = false; // ✅ Buton animasyonu için eklendi
+  loading = false; // Buton animasyonu için eklendi
 
   constructor(
     private fb: UntypedFormBuilder, 

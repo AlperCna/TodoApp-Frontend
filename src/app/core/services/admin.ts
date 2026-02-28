@@ -12,12 +12,18 @@ export class AdminService {
   constructor(private http: HttpClient) {}
 
   getUsers(): Observable<any[]> {
-    // Backend'den direkt dizi geldiği için any[] olarak işaretledik
     return this.http.get<any[]>(`${this.apiUrl}/users`);
   }
 
-  getTodos(): Observable<any[]> {
-    // image_c98f06'da gördüğümüz üzere todolar da dizi olarak geliyor
-    return this.http.get<any[]>(`${this.apiUrl}/todos`);
+  // ✅ GÜNCELLENDİ: Artık Admin de sayfalı ve aramalı veri alıyor
+  getTodos(pageNumber: number = 1, pageSize: number = 10, search: string = ''): Observable<any> {
+    let url = `${this.apiUrl}/todos?pageNumber=${pageNumber}&pageSize=${pageSize}`;
+    
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    
+    // Geriye any[] değil, PaginatedResult objesi dönüyor
+    return this.http.get<any>(url);
   }
 }

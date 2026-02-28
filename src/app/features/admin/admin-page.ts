@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // ✅ ChangeDetectorRef eklendi
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // ✅ Arama kutusu için gerekebilir
 import { AuthService } from '../../core/services/auth';
 import { AdminService } from '../../core/services/admin';
 
-// ✅ NG-ZORRO Dashboard Bileşenleri
+// ✅ NG-ZORRO Bileşenleri
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
@@ -14,12 +15,14 @@ import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { NzInputModule } from 'ng-zorro-antd/input'; // ✅ Arama için eklendi
 
 @Component({
   selector: 'app-admin-page',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     NzTableModule,
     NzCardModule,
     NzStatisticModule,
@@ -29,7 +32,8 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
     NzPageHeaderModule,
     NzSpaceModule,
     NzButtonModule,
-    NzTypographyModule
+    NzTypographyModule,
+    NzInputModule
   ],
   templateUrl: './admin-page.html',
   styleUrl: './admin-page.css'
@@ -40,50 +44,70 @@ export class AdminPage implements OnInit {
   loading = true;
   currentTenantId: string | null = '';
 
+  // 📄 SAYFALAMA VE ARAMA DEĞİŞKENLERİ
+  pageIndex = 1;
+  pageSize = 10;
+  totalCount = 0;
+  searchText = '';
+
   constructor(
     private auth: AuthService, 
     private admin: AdminService,
-    private cdr: ChangeDetectorRef // ✅ Hatalı olan 'cdr' özelliği buraya enjekte edilerek çözüldü
+    private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit(): void {
-    // ✅ Token içinden Tenant ID'yi alıp değişkene atıyoruz
     this.currentTenantId = this.auth.getTenantId();
     this.refreshData();
   }
 
-  // ✅ Verileri yenilemek için kullanılan, NG0100 hatasını önleyen metot
+  // ✅ MERKEZİ VERİ ÇEKME METODU
   refreshData() {
     this.loading = true;
 
-    // 👥 Kullanıcı verilerini çekiyoruz
+    // 👥 Kullanıcı verilerini çekiyoruz (Sabit Liste)
     this.admin.getUsers().subscribe({
       next: (data) => {
-        // ✅ State güncellemesini setTimeout ile bir sonraki "tick"e atarak 
-        // "ExpressionChangedAfterItHasBeenCheckedError" hatasını engelliyoruz
         setTimeout(() => {
           this.users = data;
-          this.cdr.markForCheck(); // Değişiklikleri Angular'a bildiriyoruz
+          this.cdr.markForCheck();
         });
       }
     });
 
-    // 📝 Görev verilerini çekiyoruz
-    this.admin.getTodos().subscribe({
-      next: (data) => {
+    // 📝 GÖREV VERİLERİNİ ÇEKİYORUZ (Sayfalı ve Aramalı)
+    // Backend'deki GetTodosAsync metoduna parametreleri gönderiyoruz
+    this.admin.getTodos(this.pageIndex, this.pageSize, this.searchText).subscribe({
+      next: (res) => { 
+        // 🔑 HATA ÇÖZÜMÜ: res artık direkt dizi değil, bir obje.
+        // İçindeki 'items' (liste) ve 'totalCount' (toplam sayı) değerlerini alıyoruz.
         setTimeout(() => {
-          this.allTodos = data;
-          this.loading = false; // İşlem bitti
+          this.allTodos = res.items; // Tabloya basılacak dizi
+          this.totalCount = res.totalCount; // Toplam kayıt sayısı (Sayfalama için)
+          this.loading = false;
           this.cdr.markForCheck();
         });
       },
-      error: () => {
+      error: (err) => {
+        console.error("Veri çekme hatası:", err);
         setTimeout(() => {
           this.loading = false;
           this.cdr.markForCheck();
         });
       }
     });
+  }
+
+  // 🔄 Tabloda sayfa değiştiğinde tetiklenen metot
+  onPageIndexChange(index: number): void {
+    this.pageIndex = index;
+    this.refreshData();
+  }
+
+  // 🔍 Arama yapıldığında tetiklenen metot
+  onSearch(): void {
+    this.pageIndex = 1; // Arama yapınca 1. sayfaya dön
+    this.refreshData();
   }
 
   logout() {

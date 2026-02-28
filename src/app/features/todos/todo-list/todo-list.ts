@@ -5,7 +5,7 @@ import { TodoService } from '../../../core/services/todo';
 import { Subject, debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth';
 
-// ✅ NG-ZORRO Modülleri
+//NG-ZORRO Modülleri
 import { NzGridModule } from 'ng-zorro-antd/grid'
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -75,38 +75,45 @@ export class TodoList implements OnInit, OnDestroy {
         setTimeout(() => {
           this.todos = res.items || [];
           this.totalCount = res.totalCount || 0;
-          this.cdr.markForCheck(); 
+          this.cdr.detectChanges() 
         });
       },
       error: () => this.message.error('Veriler yüklenirken bir hata oluştu!')
     });
   }
 
-  addTodo() {
-    if (!this.newTodoTitle.trim()) {
-      this.message.warning('Lütfen bir görev başlığı girin!');
-      return;
-    }
+addTodo() {
+  if (!this.newTodoTitle.trim()) {
+    this.message.warning('Lütfen bir görev başlığı girin!');
+    return;
+  }
 
-    const payload = {
-      title: this.newTodoTitle,
-      description: this.newTodoDescription,
-      dueDate: this.newTodoDueDate,
-      isCompleted: false
-    };
+  const payload = {
+    title: this.newTodoTitle,
+    description: this.newTodoDescription,
+    dueDate: this.newTodoDueDate,
+    isCompleted: false
+  };
 
-    this.todoService.createTodo(payload).subscribe({
-      next: () => {
-        this.message.success('Görev başarıyla eklendi.');
+  this.todoService.createTodo(payload).subscribe({
+    next: () => {
+      this.message.success('Görev başarıyla eklendi.');
+      
+      //  Temizleme işlemini bir sonraki döngüye atıyoruz.
+      // Bu sayede Angular önce görevin eklendiğini onaylar, sonra kutuyu boşaltırız.
+      setTimeout(() => {
         this.newTodoTitle = '';
         this.newTodoDescription = '';
         this.newTodoDueDate = null;
-        this.loadTodos();
-      }
-    });
-  }
+        
+        this.loadTodos(); // Listeyi yenile
+        this.cdr.detectChanges(); // Değişikliği manuel olarak onayla
+      }, 0);
+    }
+  });
+}
 
-  // ✅ Mevcut update metodun (Üstüne basıp değiştirince tetiklenecek)
+  // Mevcut update metodun 
   updateTodo(todo: any) {
     this.todoService.updateTodo(todo.id, todo).subscribe({
       next: () => {

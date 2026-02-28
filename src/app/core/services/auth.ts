@@ -15,7 +15,7 @@ export class AuthService {
       tap(res => {
         if (!res?.token) return;
 
-        // ✅ EKLEME: Sadece token değil, refreshToken'ı da kaydediyoruz
+        // Sadece token değil, refreshToken'ı da kaydediyoruz
         this.saveTokens(res.token, res.refreshToken);
 
         if (this.isAdmin()) {
@@ -29,7 +29,7 @@ export class AuthService {
     );
   }
 
-  // ✅ YENİ: Backend'den yeni bir Access Token isteyen sessiz yenileme metodu
+  //  Backend'den yeni bir Access Token isteyen sessiz yenileme metodu
   refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) return of(null);
@@ -54,7 +54,7 @@ export class AuthService {
 
   logout() {
     localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken'); // ✅ EKLEME: Refresh token'ı da temizliyoruz
+    localStorage.removeItem('refreshToken'); //EKLEME: Refresh token'ı da temizliyoruz
     this.router.navigate(['/login']);
   }
 
