@@ -32,6 +32,17 @@
         <span nz-icon nzType="login"></span> Giriş Yap
       </button>
 
+      <nz-divider nzText="Veya Kurumsal Giriş"></nz-divider>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" nz-button nzType="default" nzBlock (click)="loginWithSSO('microsoft')">
+          <span nz-icon nzType="microsoft"></span> Microsoft ile Giriş Yap
+        </button>
+        
+        <button type="button" nz-button nzType="default" nzBlock (click)="loginWithSSO('google')">
+          <span nz-icon nzType="google"></span> Google ile Giriş Yap
+        </button>
+      </div>
       <div class="login-footer">
         <span>Henüz bir hesabın yok mu?</span><br>
         <a routerLink="/register">Yeni Şirket veya Hesap Oluştur</a>

@@ -11,6 +11,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzDividerModule } from 'ng-zorro-antd/divider'; // 🟢 Yeni eklendi (Hatayı çözer)
 
 @Component({
   selector: 'app-login',
@@ -23,7 +24,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
     NzInputModule,
     NzButtonModule,
     NzCardModule,
-    NzIconModule
+    NzIconModule,
+    NzDividerModule // 🟢 Buraya eklemeyi unutma!
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -31,7 +33,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 })
 export class Login {
   validateForm: UntypedFormGroup;
-  loading = false; // Buton animasyonu için eklendi
+  loading = false;
 
   constructor(
     private fb: UntypedFormBuilder, 
@@ -45,15 +47,21 @@ export class Login {
     });
   }
 
+  // 🛡️ Kurumsal Giriş (SSO) Yönlendirme Metodu
+  loginWithSSO(provider: string): void {
+    // Kullanıcıyı doğrudan Backend'in hazırladığı gümrük kapısına gönderiyoruz
+    // Backend portun 7244 olduğu için bu adresi kullanıyoruz
+    window.location.href = `https://localhost:7244/api/auth/login-${provider}`;
+  }
+
   onLogin(): void {
     if (this.validateForm.valid) {
-      this.loading = true; // İşlem başladı
+      this.loading = true;
       
       this.auth.login(this.validateForm.value).subscribe({
         next: (response) => {
           this.message.success('Giriş başarılı! Hoş geldiniz.');
           this.loading = false;
-          // AuthService içindeki yönlendirme mantığı (isAdmin vb.) çalışacaktır
         },
         error: (err) => {
           this.loading = false;
