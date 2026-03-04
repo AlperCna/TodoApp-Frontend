@@ -5,29 +5,30 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       
-      // 401 hatasını sessizce pas geçiyoruz.
-      // Çünkü authInterceptor bu hatayı yakalayıp sessizce yenileme (Silent Refresh) yapacak.
+      // 401 hatasını sessizce pas geçiyoruz (AuthInterceptor halledecek)
       if (error.status === 401) {
         return throwError(() => error);
       }
 
       let errorMessage = 'Beklenmedik bir hata oluştu';
 
-      if (error.status === 400) {
-        //DTO Validation hatalarını yakalar (Karakter sınırı vb.)
-        errorMessage = error.error?.message || 'Geçersiz veri girişi yapıldı';
-        console.error('Validation Hatası:', error.error);
-      } 
-      else if (error.status === 500) {
-        // Backend'deki patlamaları (Exception) yakalar
-        errorMessage = 'Sunucu tarafında bir hata oluştu';
-      }
-      else {
-        // Diğer hata durumları için backend'den gelen mesajı kullanmaya çalış
-        errorMessage = error.error?.message || errorMessage;
+      // 🚀 Backend'den gelen ProblemDetails yapısını okuyoruz
+      if (error.error) {
+        // 1. İş Kuralı Hataları (BusinessException) -> Detail alanında yazar
+        if (error.error.detail) {
+          errorMessage = error.error.detail;
+        } 
+        
+        // 2. Validasyon Hataları (FluentValidation) -> Errors sözlüğündedir
+        if (error.error.errors) {
+          // Sözlükteki tüm hata mesajlarını birleştirip tek bir metin yapıyoruz
+          const validationErrors = Object.values(error.error.errors).flat();
+          errorMessage = validationErrors.join('\n'); 
+        }
       }
 
-      // 401 dışındaki tüm gerçek hatalar için uyarıyı göster
+      // Hocanın istediği: Kullanıcıya hatayı göster!
+      // İleride buraya 'alert' yerine güzel bir Toast mesajı koyabilirsin.
       alert(errorMessage); 
 
       return throwError(() => error);

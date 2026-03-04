@@ -31,7 +31,7 @@ export class TodoService {
 
   deleteTodo(id: string) { return this.http.delete(`${this.apiUrl}/${id}`); }
 
-  // ✅ EKSİK METOT EKLENDİ: Backend'deki HttpPatch("{id}/toggle") için
+  // EKSİK METOT EKLENDİ: Backend'deki HttpPatch("{id}/toggle") için
   toggleComplete(id: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/${id}/toggle`, {});
   }

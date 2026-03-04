@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, tap, of } from 'rxjs'; // 'of' eklendi
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, tap, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
 
@@ -14,63 +14,76 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => {
         if (!res?.token) return;
-
-        // Sadece token değil, refreshToken'ı da kaydediyoruz
         this.saveTokens(res.token, res.refreshToken);
-
-        if (this.isAdmin()) {
-          console.log('✅ Admin girişi başarılı, panele gidiliyor...');
-          this.router.navigate(['/admin']);
-        } else {
-          console.log('ℹ️ Kullanıcı girişi başarılı, görevlere gidiliyor...');
-          this.router.navigate(['/todos']);
-        }
+        this.handleNavigation();
       })
     );
   }
 
-  //  Backend'den yeni bir Access Token isteyen sessiz yenileme metodu
+  // ✅ YENİ: Token Yenileme (Refresh)
   refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) return of(null);
 
     return this.http.post<any>(`${this.apiUrl}/refresh-token`, { refreshToken }).pipe(
       tap(res => {
-        // Yenileme başarılıysa yeni token çiftini kaydediyoruz
         this.saveTokens(res.token, res.refreshToken);
       })
     );
   }
 
-  // ✅ YENİ: Token'ları yerel hafızaya kaydeden yardımcı metod
-  private saveTokens(token: string, refreshToken: string) {
-    localStorage.setItem('token', token);
-    localStorage.setItem('refreshToken', refreshToken); //
-  }
-
-  register(userData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, userData);
-  }
-
+  // 🛡️ GÜNCELLENDİ: Revoke (Logout) Mantığı
   logout() {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    // Eğer bir refresh token varsa, backend'e "bu oturumu veritabanında öldür" diyoruz
+    if (refreshToken) {
+      // Refresh token bir string olduğu için JSON formatında gönderiyoruz
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
+      
+      this.http.post(`${this.apiUrl}/revoke`, JSON.stringify(refreshToken), { headers })
+        .subscribe({
+          next: () => console.log('✅ Sunucu tarafında oturum sonlandırıldı (Revoked).'),
+          error: (err) => console.error('❌ Revoke işlemi başarısız:', err),
+          complete: () => this.clearLocalAndNavigate() // Hata olsa bile tarayıcıyı temizle
+        });
+    } else {
+      this.clearLocalAndNavigate();
+    }
+  }
+
+  // Yardımcı Metod: Yerel veriyi temizle ve yönlendir
+  private clearLocalAndNavigate() {
     localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken'); //EKLEME: Refresh token'ı da temizliyoruz
+    localStorage.removeItem('refreshToken');
+    console.log('ℹ️ Yerel oturum verileri temizlendi.');
     this.router.navigate(['/login']);
   }
+
+  private saveTokens(token: string, refreshToken: string) {
+    localStorage.setItem('token', token);
+    localStorage.setItem('refreshToken', refreshToken);
+  }
+
+  private handleNavigation() {
+    if (this.isAdmin()) {
+      this.router.navigate(['/admin']);
+    } else {
+      this.router.navigate(['/todos']);
+    }
+  }
+
+  // --- Yardımcı Metotlar (Token Parse, Role Kontrol vb.) ---
 
   getToken() {
     return localStorage.getItem('token');
   }
 
-  // Token içindeki TenantId bilgisini döner
   getTenantId(): string | null {
     const token = this.getToken();
     if (!token) return null;
-
     const payload = this.parseJwt(token);
-    if (!payload) return null;
-
-    return payload['tenantId'] || null;
+    return payload?.['tenantId'] || null;
   }
 
   getTenants(): Observable<string[]> {
@@ -93,16 +106,11 @@ export class AuthService {
   getRole(): any {
     const token = this.getToken();
     if (!token) return null;
-
     const payload = this.parseJwt(token);
-    if (!payload) return null;
-
-    return (
-      payload['role'] || 
-      payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
-      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'] ||
-      null
-    );
+    return payload?.['role'] || 
+           payload?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+           payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'] || 
+           null;
   }
 
   isAdmin(): boolean {
@@ -110,10 +118,14 @@ export class AuthService {
     if (Array.isArray(role)) {
       return role.some(r => r.toLowerCase() === 'admin');
     }
-    return role?.toLowerCase() === 'admin'; 
+    return role?.toLowerCase() === 'admin';
   }
 
   isLoggedIn(): boolean {
     return !!this.getToken();
+  }
+
+  register(userData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, userData);
   }
 }

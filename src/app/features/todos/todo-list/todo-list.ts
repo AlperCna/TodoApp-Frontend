@@ -18,6 +18,8 @@ import { NzPaginationModule } from 'ng-zorro-antd/pagination';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import {NzProgressModule} from 'ng-zorro-antd/progress';
+import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 
 @Component({
   selector: 'app-todo-list',
@@ -25,7 +27,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
   imports: [
     CommonModule, FormsModule, NzInputModule, NzButtonModule, 
     NzCheckboxModule, NzListModule, NzCardModule, NzDatePickerModule, 
-    NzIconModule, NzPaginationModule, NzEmptyModule, NzTagModule, NzGridModule
+    NzIconModule, NzPaginationModule, NzEmptyModule, NzTagModule, NzGridModule, NzProgressModule, NzStatisticModule
   ],
   templateUrl: './todo-list.html',
   styleUrl: './todo-list.css',
@@ -69,18 +71,20 @@ export class TodoList implements OnInit, OnDestroy {
   }
 
   loadTodos() {
-    this.todoService.getTodos(this.currentPage, this.pageSize, this.searchTerm).subscribe({
-      next: (res: any) => {
-        // ✅ NG0100 hatasını önlemek için (image_214121.png)
-        setTimeout(() => {
-          this.todos = res.items || [];
-          this.totalCount = res.totalCount || 0;
-          this.cdr.detectChanges() 
-        });
-      },
-      error: () => this.message.error('Veriler yüklenirken bir hata oluştu!')
-    });
-  }
+  this.todoService.getTodos(this.currentPage, this.pageSize, this.searchTerm).subscribe({
+    next: (res: any) => {
+      // setTimeout yerine mikro-task (Promise) kullanmak daha kararlıdır
+      Promise.resolve().then(() => {
+        this.todos = res.items || [];
+        this.totalCount = res.totalCount || 0;
+        
+        // Angular'a "bu bileşeni ve içindeki istatistikleri tekrar kontrol et" diyoruz
+        this.cdr.markForCheck(); 
+      });
+    },
+    error: () => this.message.error('Veriler yüklenirken bir hata oluştu!')
+  });
+}
 
 addTodo() {
   if (!this.newTodoTitle.trim()) {
@@ -143,4 +147,20 @@ addTodo() {
   ngOnDestroy() {
     this.searchSubscription?.unsubscribe();
   }
+
+  getPercent(): number {
+  if (this.todos.length === 0) return 0;
+  const completed = this.todos.filter(t => t.isCompleted).length;
+  return Math.round((completed / this.todos.length) * 100);
+}
+
+// Bekleyen görev sayısını döner
+getPendingCount(): number {
+  return this.todos.filter(t => !t.isCompleted).length;
+}
+
+// Tamamlanan görev sayısını döner
+getCompletedCount(): number {
+  return this.todos.filter(t => t.isCompleted).length;
+}
 }
