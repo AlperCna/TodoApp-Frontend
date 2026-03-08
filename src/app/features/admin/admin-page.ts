@@ -1,10 +1,10 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // ✅ Arama kutusu için gerekebilir
+import { FormsModule } from '@angular/forms'; //  Arama kutusu için gerekebilir
 import { AuthService } from '../../core/services/auth';
 import { AdminService } from '../../core/services/admin';
 
-// ✅ NG-ZORRO Bileşenleri
+// NG-ZORRO Bileşenleri
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
@@ -15,7 +15,7 @@ import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { NzInputModule } from 'ng-zorro-antd/input'; // ✅ Arama için eklendi
+import { NzInputModule } from 'ng-zorro-antd/input'; //  Arama için eklendi
 
 @Component({
   selector: 'app-admin-page',
@@ -44,7 +44,7 @@ export class AdminPage implements OnInit {
   loading = true;
   currentTenantId: string | null = '';
 
-  // 📄 SAYFALAMA VE ARAMA DEĞİŞKENLERİ
+  // SAYFALAMA VE ARAMA DEĞİŞKENLERİ
   pageIndex = 1;
   pageSize = 10;
   totalCount = 0;
@@ -61,11 +61,11 @@ export class AdminPage implements OnInit {
     this.refreshData();
   }
 
-  // ✅ MERKEZİ VERİ ÇEKME METODU
+  /// Verileri çekmek için ortak metot Bu metot, hem kullanıcı listesini hem de TODO listesini çeker. TODO'lar için sayfalama ve arama parametrelerini de gönderir.
   refreshData() {
     this.loading = true;
 
-    // 👥 Kullanıcı verilerini çekiyoruz (Sabit Liste)
+    // Kullanıcı verilerini çekiyoruz (Sabit Liste)
     this.admin.getUsers().subscribe({
       next: (data) => {
         setTimeout(() => {
@@ -75,11 +75,11 @@ export class AdminPage implements OnInit {
       }
     });
 
-    // 📝 GÖREV VERİLERİNİ ÇEKİYORUZ (Sayfalı ve Aramalı)
+    // GÖREV VERİLERİNİ ÇEKİYORUZ (Sayfalı ve Aramalı)
     // Backend'deki GetTodosAsync metoduna parametreleri gönderiyoruz
     this.admin.getTodos(this.pageIndex, this.pageSize, this.searchText).subscribe({
       next: (res) => { 
-        // 🔑 HATA ÇÖZÜMÜ: res artık direkt dizi değil, bir obje.
+        //  HATA ÇÖZÜMÜ: res artık direkt dizi değil, bir obje.
         // İçindeki 'items' (liste) ve 'totalCount' (toplam sayı) değerlerini alıyoruz.
         setTimeout(() => {
           this.allTodos = res.items; // Tabloya basılacak dizi

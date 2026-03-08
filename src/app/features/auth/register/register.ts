@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core'; // ✅ OnInit eklendi
+import { Component, OnInit } from '@angular/core'; //  OnInit eklendi
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators, FormControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
 
-// ✅ NG-ZORRO Modülleri
+// NG-ZORRO Modülleri
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -12,7 +12,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete'; // 👈 Seçim listesi için kritik
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete'; //  Seçim listesi için kritik
 
 @Component({
   selector: 'app-register',
@@ -27,16 +27,16 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete'; // 👈 Seç
     NzCardModule,
     NzIconModule,
     NzGridModule,
-    NzAutocompleteModule // 👈 Listeyi göstermek için ekledik
+    NzAutocompleteModule //  Listeyi göstermek için ekledik
   ],
   templateUrl: './register.html',
   styleUrl: './register.css',
   providers: [NzMessageService]
 })
-export class Register implements OnInit { // ✅ OnInit uygulandı
+export class Register implements OnInit { // OnInit uygulandı
   validateForm: UntypedFormGroup;
   loading = false;
-  tenants: string[] = []; // ✅ Mevcut şirketlerin listesi
+  tenants: string[] = []; // Mevcut şirketlerin listesi
 
   constructor(
     private fb: UntypedFormBuilder, 
@@ -45,7 +45,7 @@ export class Register implements OnInit { // ✅ OnInit uygulandı
     private message: NzMessageService
   ) {
     this.validateForm = this.fb.group({
-      // ✅ Yeni: Hem seçilebilir hem yazılabilir şirket alanı
+      // : Hem seçilebilir hem yazılabilir şirket alanı
       tenantName: [null, [Validators.required, Validators.minLength(2)]],
       username: [null, [Validators.required, Validators.minLength(3)]],
       email: [null, [Validators.required, Validators.email]],

@@ -1,6 +1,6 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from '../services/auth'; // ✅ Dosya adı 'auth' olarak güncellendi
+import { AuthService } from '../services/auth'; // AuthService'i içe aktarın
 import { catchError, switchMap, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -20,9 +20,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error) => {
       // Eğer hata 401 ise ve bu bir login isteği değilse sessiz yenilemeyi başlat
       if (error instanceof HttpErrorResponse && error.status === 401 && !req.url.includes('login')) {
-        
+          /// Oturum süresi dolmuş olabilir. Sessiz yenileme yapmayı dene.
         console.warn('⚠️ Access Token süresi dolmuş. Sessiz yenileme deneniyor...');
-
+// AuthService içindeki refreshToken metodunu çağırarak yeni token almaya çalışıyoruz. Bu metod, eğer refresh token geçerliyse yeni bir access token dönecektir.
         return authService.refreshToken().pipe(
           switchMap((res) => {
             if (res && res.token) {

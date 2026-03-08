@@ -4,7 +4,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
-import { errorInterceptor } from './core/interceptors/error-interceptor'; // ✅ Yeni Error Interceptor'ımızı ekliyoruz
+import { errorInterceptor } from './core/interceptors/error-interceptor'; // Yeni Error Interceptor'ımızı ekliyoruz
 import { icons } from './icons-provider'; 
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { tr_TR, provideNzI18n } from 'ng-zorro-antd/i18n';
@@ -16,7 +16,7 @@ registerLocaleData(tr);
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    // ✅ Auth ve Error Interceptor'larını sırayla kaydediyoruz
+    //  Auth ve Error Interceptor'larını sırayla kaydediyoruz
     provideHttpClient(
       withInterceptors([authInterceptor, errorInterceptor])
     ), 

@@ -4,7 +4,7 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators }
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
 
-// ✅ NG-ZORRO Modülleri
+//  NG-ZORRO Modülleri
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';

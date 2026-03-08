@@ -4,15 +4,14 @@ import { catchError, throwError } from 'rxjs';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      
-      // 401 hatasını sessizce pas geçiyoruz (AuthInterceptor halledecek)
+        // Eğer hata 401 ise, bu zaten authInterceptor tarafından yönetilecek, burada sadece diğer hataları ele alıyoruz
       if (error.status === 401) {
         return throwError(() => error);
       }
-
+         // Hata mesajını varsayılan olarak belirliyoruz
       let errorMessage = 'Beklenmedik bir hata oluştu';
 
-      // 🚀 Backend'den gelen ProblemDetails yapısını okuyoruz
+      // Backend'den gelen ProblemDetails yapısını okuyoruz
       if (error.error) {
         // 1. İş Kuralı Hataları (BusinessException) -> Detail alanında yazar
         if (error.error.detail) {
@@ -27,10 +26,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         }
       }
 
-      // Hocanın istediği: Kullanıcıya hatayı göster!
-      // İleride buraya 'alert' yerine güzel bir Toast mesajı koyabilirsin.
+      // Hata mesajını kullanıcıya gösteriyoruz (örneğin, alert ile)
       alert(errorMessage); 
-
+// Konsola da detaylı hatayı yazdırıyoruz
       return throwError(() => error);
     })
   );

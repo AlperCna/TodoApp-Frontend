@@ -3,8 +3,8 @@ import {
   MenuUnfoldOutline,
   FormOutline,
   DashboardOutline,
-  WindowsOutline,   // 👈 Microsoft yerine bunu kullanıyoruz
-  GooglePlusOutline // 👈 Google yerine bunu kullanıyoruz
+  WindowsOutline,   //  Microsoft yerine bunu kullanıyoruz
+  GooglePlusOutline // Google yerine bunu kullanıyoruz
 } from '@ant-design/icons-angular/icons';
 
 export const icons = [
@@ -12,6 +12,6 @@ export const icons = [
   MenuUnfoldOutline, 
   DashboardOutline, 
   FormOutline,
-  WindowsOutline,   // 👈 Buraya da ekle
-  GooglePlusOutline // 👈 Buraya da ekle
+  WindowsOutline,   //  Buraya da ekle
+  GooglePlusOutline //  Buraya da ekle
 ];
