@@ -3,15 +3,22 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
-// AuthService, kullanıcı kimlik doğrulaması, token yönetimi ve oturum kontrolü gibi tüm işlemleri yönetecek
+
+// Tip güvenliği için domain modellerimizi içeri aktarıyoruz
+import { IAuthResponse, ILoginRequest, IRegisterRequest } from '../models/auth.model';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/Auth`;
 
   constructor(private http: HttpClient, private router: Router) {}
-// Login metodunda artık sadece token alma değil, aynı zamanda token'ları kaydetme ve kullanıcıyı yönlendirme işlemleri de var
-  login(credentials: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
+
+  /**
+   * Kullanıcı giriş bilgilerini backend'e gönderir.
+   * Başarılı olursa tokenları kaydeder ve kullanıcıyı yetkisine göre yönlendirir.
+   */
+  login(credentials: ILoginRequest): Observable<IAuthResponse> {
+    return this.http.post<IAuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => {
         if (!res?.token) return;
         this.saveTokens(res.token, res.refreshToken);
@@ -20,52 +27,62 @@ export class AuthService {
     );
   }
 
-  // Oturum süresi dolduğunda veya token geçersiz olduğunda yeni token almak için refresh token'ı kullanarak backend'e istek atan metod
-  refreshToken(): Observable<any> {
+  /**
+   * Mevcut refresh token'ı kullanarak sunucudan yeni bir access token talep eder.
+   * Genellikle 401 hatalarında interceptor üzerinden tetiklenir.
+   */
+  refreshToken(): Observable<IAuthResponse | null> {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) return of(null);
 
-    return this.http.post<any>(`${this.apiUrl}/refresh-token`, { refreshToken }).pipe(
+    return this.http.post<IAuthResponse>(`${this.apiUrl}/refresh-token`, { refreshToken }).pipe(
       tap(res => {
         this.saveTokens(res.token, res.refreshToken);
       })
     );
   }
 
-  // Kullanıcıyı tamamen oturumdan çıkarmak için metod. Hem yerel veriyi temizler hem de backend'e revoke isteği gönderir.
-  logout() {
+  /**
+   * Kullanıcı oturumunu hem sunucu tarafında (revoke) hem de yerel hafızada sonlandırır.
+   */
+  logout(): void {
     const refreshToken = localStorage.getItem('refreshToken');
 
-    // Eğer bir refresh token varsa, backend'e "bu oturumu veritabanında öldür" diyoruz
     if (refreshToken) {
-      // Refresh token bir string olduğu için JSON formatında gönderiyoruz
       const headers = new HttpHeaders().set('Content-Type', 'application/json');
       
       this.http.post(`${this.apiUrl}/revoke`, JSON.stringify(refreshToken), { headers })
         .subscribe({
-          next: () => console.log('✅ Sunucu tarafında oturum sonlandırıldı (Revoked).'),
-          error: (err) => console.error('❌ Revoke işlemi başarısız:', err),
-          complete: () => this.clearLocalAndNavigate() // Hata olsa bile tarayıcıyı temizle
+          next: () => console.log('Sunucu tarafında oturum başarıyla sonlandırıldı.'),
+          error: (err) => console.error('Revoke işlemi sırasında hata oluştu:', err),
+          complete: () => this.clearLocalAndNavigate()
         });
     } else {
       this.clearLocalAndNavigate();
     }
   }
 
-  // Oturum verilerini temizleyen ve kullanıcıyı login sayfasına yönlendiren yardımcı metod
-  private clearLocalAndNavigate() {
+  /**
+   * Tarayıcıdaki oturum verilerini temizler ve kullanıcıyı giriş sayfasına gönderir.
+   */
+  private clearLocalAndNavigate(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    console.log('ℹ️ Yerel oturum verileri temizlendi.');
     this.router.navigate(['/login']);
   }
-// Login, logout ve token yenileme işlemlerinin yanı sıra, token içeriğinden kullanıcı rolü ve tenant bilgisi çekme gibi yardımcı metotlar da burada yer alacak
-  private saveTokens(token: string, refreshToken: string) {
+
+  /**
+   * Sunucudan gelen token ve refresh token ikilisini yerel depolamaya (LocalStorage) yazar.
+   */
+  private saveTokens(token: string, refreshToken: string): void {
     localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
   }
-// Kullanıcı giriş yaptıktan sonra, eğer admin ise admin paneline, değilse todo listesine yönlendirmek için metod
-  private handleNavigation() {
+
+  /**
+   * Kullanıcının rolüne bakar; admin ise yönetim paneline, değilse görev listesine yönlendirir.
+   */
+  private handleNavigation(): void {
     if (this.isAdmin()) {
       this.router.navigate(['/admin']);
     } else {
@@ -73,23 +90,33 @@ export class AuthService {
     }
   }
 
-  // --- Yardımcı Metotlar (Token Parse, Role Kontrol vb.) ---
-
-  getToken() {
+  /**
+   * Yerel depolamadaki aktif access token'ı döndürür.
+   */
+  getToken(): string | null {
     return localStorage.getItem('token');
   }
-// Token içinden tenantId'yi çekmek için metod Bu metod, token'ı decode ederek içindeki payload'dan tenantId'yi alır. Eğer token yoksa veya parse işlemi başarısız olursa null döner.
+
+  /**
+   * Token'ı parse ederek içindeki şirkete özel TenantId bilgisini döner.
+   */
   getTenantId(): string | null {
     const token = this.getToken();
     if (!token) return null;
     const payload = this.parseJwt(token);
     return payload?.['tenantId'] || null;
   }
-// Backend'deki Tenants'ı çekmek için metod Bu metod, backend'deki Tenants endpoint'ine istek atarak mevcut tenant listesini çeker. Bu liste, login sayfasındaki tenant seçimi için kullanılacak.
+
+  /**
+   * Mevcut tüm şirketlerin (Tenants) listesini asenkron olarak çeker.
+   */
   getTenants(): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}/tenants`);
   }
-// JWT token'ı decode ederek içindeki bilgileri çekmek için yardımcı metod. Bu metod, token'ın payload kısmını base64'ten decode eder ve JSON formatında geri döner. Eğer token geçersizse veya parse işlemi sırasında hata oluşursa null döner.
+
+  /**
+   * JWT formatındaki token'ın payload kısmını base64'ten çözerek okunabilir nesneye çevirir.
+   */
   private parseJwt(token: string): any {
     try {
       const base64Url = token.split('.')[1];
@@ -102,8 +129,11 @@ export class AuthService {
       return null;
     }
   }
-// Token içinden kullanıcı rolünü çekmek için metod Bu metod, token'ı parse ederek içindeki payload'dan role bilgisini alır. Farklı claim isimlendirmeleri olabileceği için birkaç farklı anahtar kontrol edilir. Eğer rol bilgisi yoksa null döner.
-  getRole(): any {
+
+  /**
+   * Token içindeki standart veya Microsoft tabanlı rol claim'lerini kontrol ederek kullanıcı rolünü döner.
+   */
+  getRole(): string | string[] | null {
     const token = this.getToken();
     if (!token) return null;
     const payload = this.parseJwt(token);
@@ -112,7 +142,10 @@ export class AuthService {
            payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'] || 
            null;
   }
-// Kullanıcının admin olup olmadığını kontrol eden metod Bu metod, getRole() ile çekilen rol bilgisini kontrol eder. Eğer rol bir dizi ise içinde 'admin' olup olmadığına bakar. Eğer tek bir string ise direkt olarak 'admin' ile karşılaştırır. Sonuç olarak kullanıcı admin ise true, değilse false döner.
+
+  /**
+   * Kullanıcının 'Admin' rolüne sahip olup olmadığını mekanik olarak kontrol eder.
+   */
   isAdmin(): boolean {
     const role = this.getRole();
     if (Array.isArray(role)) {
@@ -121,11 +154,17 @@ export class AuthService {
     return role?.toLowerCase() === 'admin';
   }
 
+  /**
+   * Sistemde geçerli bir token olup olmadığını (oturumu) kontrol eder.
+   */
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
 
-  register(userData: any): Observable<any> {
+  /**
+   * Yeni kullanıcı kayıt verilerini backend'e iletir.
+   */
+  register(userData: IRegisterRequest): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, userData);
   }
 }

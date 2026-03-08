@@ -1,8 +1,12 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; //  Arama kutusu için gerekebilir
+import { FormsModule } from '@angular/forms'; 
 import { AuthService } from '../../core/services/auth';
 import { AdminService } from '../../core/services/admin';
+
+// Modellerimizi (Domain Objelerini) içeri alıyoruz
+import { IUser } from '../../core/models/user.model';
+import { ITodo } from '../../core/models/todo.model';
 
 // NG-ZORRO Bileşenleri
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -15,7 +19,7 @@ import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { NzInputModule } from 'ng-zorro-antd/input'; //  Arama için eklendi
+import { NzInputModule } from 'ng-zorro-antd/input';
 
 @Component({
   selector: 'app-admin-page',
@@ -39,8 +43,14 @@ import { NzInputModule } from 'ng-zorro-antd/input'; //  Arama için eklendi
   styleUrl: './admin-page.css'
 })
 export class AdminPage implements OnInit {
-  users: any[] = [];
-  allTodos: any[] = [];
+  // --- Değişken Güncellemeleri ---
+  
+  // any[] yerine IUser[]: Kullanıcı listesini mühürledik
+  users: IUser[] = [];
+  
+  // any[] yerine ITodo[]: Görev listesini mühürledik
+  allTodos: ITodo[] = [];
+  
   loading = true;
   currentTenantId: string | null = '';
 
@@ -61,29 +71,32 @@ export class AdminPage implements OnInit {
     this.refreshData();
   }
 
-  /// Verileri çekmek için ortak metot Bu metot, hem kullanıcı listesini hem de TODO listesini çeker. TODO'lar için sayfalama ve arama parametrelerini de gönderir.
-  refreshData() {
+  /**
+   * Verileri çekmek için merkezi metot. 
+   * Servislerden gelen veriler artık mühürlü modellerle geliyor.
+   */
+  refreshData(): void {
     this.loading = true;
 
-    // Kullanıcı verilerini çekiyoruz (Sabit Liste)
+    // KULLANICI VERİLERİ (AdminService.getUsers artık IUser[] döner)
     this.admin.getUsers().subscribe({
-      next: (data) => {
+      next: (data: IUser[]) => {
         setTimeout(() => {
           this.users = data;
+         
           this.cdr.markForCheck();
         });
       }
     });
 
-    // GÖREV VERİLERİNİ ÇEKİYORUZ (Sayfalı ve Aramalı)
-    // Backend'deki GetTodosAsync metoduna parametreleri gönderiyoruz
+    // GÖREV VERİLERİ (AdminService.getTodos artık IPaginatedResult<ITodo> döner)
     this.admin.getTodos(this.pageIndex, this.pageSize, this.searchText).subscribe({
       next: (res) => { 
-        //  HATA ÇÖZÜMÜ: res artık direkt dizi değil, bir obje.
-        // İçindeki 'items' (liste) ve 'totalCount' (toplam sayı) değerlerini alıyoruz.
         setTimeout(() => {
-          this.allTodos = res.items; // Tabloya basılacak dizi
-          this.totalCount = res.totalCount; // Toplam kayıt sayısı (Sayfalama için)
+          // res artık IPaginatedResult tipinde olduğu için .items ve .totalCount'a erişim güvenli
+          this.allTodos = res.items; 
+          this.totalCount = res.totalCount; 
+          
           this.loading = false;
           this.cdr.markForCheck();
         });
@@ -98,19 +111,26 @@ export class AdminPage implements OnInit {
     });
   }
 
-  // 🔄 Tabloda sayfa değiştiğinde tetiklenen metot
+  /**
+   * Tabloda sayfa değiştiğinde tetiklenir, yeni sayfadaki veriyi asenkron olarak ister.
+   */
   onPageIndexChange(index: number): void {
     this.pageIndex = index;
     this.refreshData();
   }
 
-  // 🔍 Arama yapıldığında tetiklenen metot
+  /**
+   * Arama terimine göre sayfayı 1'e çeker ve asenkron kuryeyi yeni terimle yola çıkarır.
+   */
   onSearch(): void {
-    this.pageIndex = 1; // Arama yapınca 1. sayfaya dön
+    this.pageIndex = 1; 
     this.refreshData();
   }
 
-  logout() {
+  /**
+   * Oturumu güvenli bir şekilde kapatır.
+   */
+  logout(): void {
     this.auth.logout();
   }
 }

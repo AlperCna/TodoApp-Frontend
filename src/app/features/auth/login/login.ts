@@ -4,14 +4,17 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators }
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
 
-//  NG-ZORRO Modülleri
+// Domain Modellerini içeri alıyoruz
+import { ILoginRequest, IAuthResponse } from '../../../core/models/auth.model';
+
+// NG-ZORRO Modülleri
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzDividerModule } from 'ng-zorro-antd/divider'; // 🟢 Yeni eklendi (Hatayı çözer)
+import { NzDividerModule } from 'ng-zorro-antd/divider';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +28,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider'; // 🟢 Yeni eklendi (H
     NzButtonModule,
     NzCardModule,
     NzIconModule,
-    NzDividerModule // 🟢 Buraya eklemeyi unutma!
+    NzDividerModule
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -47,19 +50,28 @@ export class Login {
     });
   }
 
-  // 🛡️ Kurumsal Giriş (SSO) Yönlendirme Metodu
+  /**
+   * Kurumsal Giriş (SSO) Yönlendirme Metodu.
+   * Mekanik bir yönlendirme olduğu için burada model gerekmez.
+   */
   loginWithSSO(provider: string): void {
-    // Kullanıcıyı doğrudan Backend'in hazırladığı gümrük kapısına gönderiyoruz
-    // Backend portun 7244 olduğu için bu adresi kullanıyoruz
     window.location.href = `https://localhost:7244/api/auth/login-${provider}`;
   }
 
+  /**
+   * Giriş denemesi yapar. 
+   * Form verilerini ILoginRequest tipine mühürleyerek servise gönderir.
+   */
   onLogin(): void {
     if (this.validateForm.valid) {
       this.loading = true;
       
-      this.auth.login(this.validateForm.value).subscribe({
-        next: (response) => {
+      // Güncelleme 1: any yerine ILoginRequest kullanımı
+      const loginPayload: ILoginRequest = this.validateForm.value;
+      
+      this.auth.login(loginPayload).subscribe({
+        //  Güncelleme 2: response artık any değil, IAuthResponse tipinde
+        next: (response: IAuthResponse) => {
           this.message.success('Giriş başarılı! Hoş geldiniz.');
           this.loading = false;
         },
