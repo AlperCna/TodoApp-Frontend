@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; 
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 import { AuthService } from '../../core/services/auth';
@@ -40,21 +40,20 @@ import { NzInputModule } from 'ng-zorro-antd/input';
     NzInputModule
   ],
   templateUrl: './admin-page.html',
-  styleUrl: './admin-page.css'
+  styleUrl: './admin-page.css',
+  /* ChangeDetectionStrategy.OnPush seçilerek performans odaklı bir desen belirlenmiştir.
+     Bu strateji, bileşenin sadece girdi (Input) değiştiğinde veya manuel tetikleme 
+     yapıldığında kontrol edilmesini sağlayarak gereksiz render maliyetini önler.
+  */
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminPage implements OnInit {
-  // --- Değişken Güncellemeleri ---
   
-  // any[] yerine IUser[]: Kullanıcı listesini mühürledik
   users: IUser[] = [];
-  
-  // any[] yerine ITodo[]: Görev listesini mühürledik
   allTodos: ITodo[] = [];
-  
   loading = true;
   currentTenantId: string | null = '';
 
-  // SAYFALAMA VE ARAMA DEĞİŞKENLERİ
   pageIndex = 1;
   pageSize = 10;
   totalCount = 0;
@@ -72,64 +71,56 @@ export class AdminPage implements OnInit {
   }
 
   /**
-   * Verileri çekmek için merkezi metot. 
-   * Servislerden gelen veriler artık mühürlü modellerle geliyor.
+   * Merkezi veri yenileme metodu. Asenkron operasyonlar OnPush stratejisi ile 
+   * yönetildiği için her başarılı veri dönüşünde manuel tetikleme yapılması gerekir.
    */
   refreshData(): void {
     this.loading = true;
+    /* OnPush stratejisinde loading durumu değişikliğinin arayüze anında yansıması 
+       için asenkron işlem öncesi manuel kontrol tetiklenir.
+    */
+    this.cdr.markForCheck();
 
-    // KULLANICI VERİLERİ (AdminService.getUsers artık IUser[] döner)
+    // Kullanıcı verilerinin asenkron olarak talep edilmesi
     this.admin.getUsers().subscribe({
       next: (data: IUser[]) => {
-        setTimeout(() => {
-          this.users = data;
-         
-          this.cdr.markForCheck();
-        });
+        this.users = data;
+        /* Asenkron API cevabı Zone.js dışı bir tetikleme içerebileceğinden 
+           veya OnPush kısıtlamalarından dolayı markForCheck kullanımı zorunludur.
+        */
+        this.cdr.markForCheck();
       }
     });
 
-    // GÖREV VERİLERİ (AdminService.getTodos artık IPaginatedResult<ITodo> döner)
+    // Görev verilerinin asenkron olarak talep edilmesi
     this.admin.getTodos(this.pageIndex, this.pageSize, this.searchText).subscribe({
       next: (res) => { 
-        setTimeout(() => {
-          // res artık IPaginatedResult tipinde olduğu için .items ve .totalCount'a erişim güvenli
-          this.allTodos = res.items; 
-          this.totalCount = res.totalCount; 
-          
-          this.loading = false;
-          this.cdr.markForCheck();
-        });
+        this.allTodos = res.items; 
+        this.totalCount = res.totalCount; 
+        this.loading = false;
+        /* Veri kümesi güncellendiğinde Angular'a ilgili ağaç parçasını 
+           yeniden kontrol etmesi talimatı verilir.
+        */
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error("Veri çekme hatası:", err);
-        setTimeout(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        });
+        this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
 
-  /**
-   * Tabloda sayfa değiştiğinde tetiklenir, yeni sayfadaki veriyi asenkron olarak ister.
-   */
   onPageIndexChange(index: number): void {
     this.pageIndex = index;
     this.refreshData();
   }
 
-  /**
-   * Arama terimine göre sayfayı 1'e çeker ve asenkron kuryeyi yeni terimle yola çıkarır.
-   */
   onSearch(): void {
     this.pageIndex = 1; 
     this.refreshData();
   }
 
-  /**
-   * Oturumu güvenli bir şekilde kapatır.
-   */
   logout(): void {
     this.auth.logout();
   }

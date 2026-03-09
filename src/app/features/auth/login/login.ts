@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -32,7 +32,11 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
-  providers: [NzMessageService]
+  providers: [NzMessageService],
+  /* ChangeDetectionStrategy.OnPush: Form tabanlı bileşenlerde gereksiz değişim 
+     algılama döngülerini önlemek ve performansı optimize etmek için tercih edilmiştir. 
+  */
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Login {
   validateForm: UntypedFormGroup;
@@ -42,7 +46,8 @@ export class Login {
     private fb: UntypedFormBuilder, 
     private auth: AuthService, 
     private router: Router,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private cdr: ChangeDetectorRef // Mekanik kontrol için servis enjeksiyonu
   ) {
     this.validateForm = this.fb.group({
       email: [null, [Validators.required, Validators.email]],
@@ -52,41 +57,51 @@ export class Login {
 
   /**
    * Kurumsal Giriş (SSO) Yönlendirme Metodu.
-   * Mekanik bir yönlendirme olduğu için burada model gerekmez.
+   * Dış servis yönlendirmesi olduğu için uygulama içi render takibi gerekmez.
    */
   loginWithSSO(provider: string): void {
     window.location.href = `https://localhost:7244/api/auth/login-${provider}`;
   }
 
   /**
-   * Giriş denemesi yapar. 
-   * Form verilerini ILoginRequest tipine mühürleyerek servise gönderir.
+   * Giriş denemesi asenkron bir süreçtir. OnPush stratejisi nedeniyle 
+   * 'loading' durumu değişimleri manuel olarak işaretlenmelidir.
    */
   onLogin(): void {
     if (this.validateForm.valid) {
       this.loading = true;
+      /* Asenkron istek öncesi 'loading' spinner'ın arayüzde 
+         görülebilmesi için manuel tetikleme yapılır. 
+      */
+      this.cdr.markForCheck();
       
-      // Güncelleme 1: any yerine ILoginRequest kullanımı
       const loginPayload: ILoginRequest = this.validateForm.value;
       
       this.auth.login(loginPayload).subscribe({
-        //  Güncelleme 2: response artık any değil, IAuthResponse tipinde
         next: (response: IAuthResponse) => {
           this.message.success('Giriş başarılı! Hoş geldiniz.');
           this.loading = false;
+          /* Başarılı dönüş sonrası UI durumunun güncellenmesi sağlanır. */
+          this.cdr.markForCheck();
         },
         error: (err) => {
           this.loading = false;
           this.message.error('Giriş başarısız! Bilgilerinizi kontrol edin.');
+          /* Hata durumunda loading ikonunun kapanması için işaretleme yapılır. */
+          this.cdr.markForCheck();
         }
       });
     } else {
+      /* Form doğrulama hatalarının (validasyon) arayüzde anında 
+         görünebilmesi için döngü sonunda manuel işaretleme yapılır. 
+      */
       Object.values(this.validateForm.controls).forEach(control => {
         if (control.invalid) {
           control.markAsDirty();
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
+      this.cdr.markForCheck();
     }
   }
 }

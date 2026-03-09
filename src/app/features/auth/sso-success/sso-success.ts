@@ -1,46 +1,52 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, Params } from '@angular/router';
 
 @Component({
   selector: 'app-sso-success',
+  standalone: true,
   template: `
     <div style="text-align: center; margin-top: 50px;">
       <h2>Giriş Başarılı!</h2>
       <p>Yönlendiriliyorsunuz...</p>
     </div>
-  `
+  `,
+  /* ChangeDetectionStrategy.OnPush: Bu bileşen sadece bir geçiş köprüsü (bridge) 
+     olduğu için herhangi bir UI güncelleme döngüsüne ihtiyaç duymaz. 
+     OnPush ile uygulamanın bu aşamada tamamen statik ve performanslı kalması sağlanır.
+  */
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SsoSuccessComponent implements OnInit {
   
   constructor(private route: ActivatedRoute, private router: Router) {}
 
   /**
-   * Bileşen yüklendiğinde URL üzerindeki parametreleri dinlemeye başlar.
-   * Google veya Microsoft gibi servislerden dönüşte tokenlar URL içinde taşınır.
+   * Bileşen lifecycle başlangıcında URL parametrelerini reaktif olarak dinler.
+   * OAuth2 akışından dönen kimlik bilgilerini (token) ayıklayarak kalıcı hafızaya aktarır.
    */
   ngOnInit(): void {
-    // Adres çubuğundaki (URL) sorgu parametrelerini Params tipinde dinliyoruz
+    /* ActivatedRoute queryParams bir Observable akışıdır. 
+       OnPush stratejisinde bile bu akış tetiklendiğinde yönlendirme (navigation) 
+       mekanik olarak gerçekleşecektir.
+    */
     this.route.queryParams.subscribe((params: Params) => {
       
-      // Parametreler içinden erişim ve yenileme biletlerini (token) alıyoruz
       const accessToken: string | undefined = params['accessToken'];
       const refreshToken: string | undefined = params['refreshToken'];
 
       /**
-       * Eğer her iki bilet de URL içinde mevcutsa, bunları tarayıcı hafızasına (LocalStorage)
-       * kaydederek oturumu başlatıyoruz ve kullanıcıyı ana sayfaya yönlendiriyoruz.
+       * State Management: Gelen biletler LocalStorage katmanına mühürlenir.
+       * Bu işlemden sonra router üzerinden güvenli alana (Internal Zone) geçiş yapılır.
        */
       if (accessToken && refreshToken) {
         localStorage.setItem('token', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
 
-        // Kimlik doğrulama işlemi tamamlandığı için kullanıcıyı görev listesine uçuruyoruz
         this.router.navigate(['/todos']);
       } else {
-        /**
-         * Eğer parametreler eksikse (bir hata oluşmuşsa), 
-         * kullanıcıyı tekrar giriş yapması için login sayfasına geri gönderiyoruz.
-         */
+        /* Hatalı veya eksik parametre durumunda giriş başarısız sayılır 
+           ve kullanıcı kimlik doğrulama ekranına geri postalanır.
+        */
         this.router.navigate(['/login']);
       }
     });

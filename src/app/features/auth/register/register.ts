@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators, FormControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -34,23 +34,25 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
   ],
   templateUrl: './register.html',
   styleUrl: './register.css',
-  providers: [NzMessageService]
+  providers: [NzMessageService],
+  /* ChangeDetectionStrategy.OnPush: Bileşenin gereksiz render döngülerine girmesini
+     engeller. Sadece girdi değişimlerinde veya manuel işaretleme yapıldığında 
+     arayüzü güncelleyerek performans optimizasyonu sağlar.
+  */
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Register implements OnInit {
-  // Form yapısını ve yükleme durumunu yönetecek değişkenler
   validateForm: UntypedFormGroup;
   loading = false;
-  
-  // Backend'den çekilecek mevcut şirketlerin (Tenant) listesi
   tenants: string[] = [];
 
   constructor(
     private fb: UntypedFormBuilder, 
     private auth: AuthService, 
     private router: Router,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private cdr: ChangeDetectorRef // Mekanik kontrol için servis enjeksiyonu
   ) {
-    // Form kurallarını ve validasyonları tanımlıyoruz
     this.validateForm = this.fb.group({
       tenantName: [null, [Validators.required, Validators.minLength(2)]],
       username: [null, [Validators.required, Validators.minLength(3)]],
@@ -60,26 +62,25 @@ export class Register implements OnInit {
     });
   }
 
-  /**
-   * Bileşen ilk kez ayağa kalktığında şirket listesini asenkron olarak çeker.
-   */
   ngOnInit(): void {
     this.fetchTenants();
   }
 
   /**
-   * AuthService üzerinden mevcut şirket isimlerini getirir.
+   * Şirket listesini asenkron olarak getirir. Liste güncellendiğinde 
+   * OnPush stratejisi gereği manuel işaretleme yapılır.
    */
   fetchTenants(): void {
     this.auth.getTenants().subscribe({
-      next: (list) => this.tenants = list,
+      next: (list) => {
+        this.tenants = list;
+        /* Veri akışı tamamlandığında arayüzün güncellenmesi tetiklenir. */
+        this.cdr.markForCheck();
+      },
       error: () => console.error('Şirket listesi alınamadı.')
     });
   }
 
-  /**
-   * Girilen iki şifrenin birbiriyle eşleşip eşleşmediğini kontrol eden özel denetleyici.
-   */
   confirmationValidator = (control: FormControl): { [s: string]: boolean } => {
     if (!control.value) {
       return { shredded: true };
@@ -89,22 +90,20 @@ export class Register implements OnInit {
     return {};
   };
 
-  /**
-   * Şifre her değiştiğinde doğrulama alanını mekanik olarak tetikleyen yardımcı metot.
-   */
   updateConfirmValidator(): void {
     Promise.resolve().then(() => this.validateForm.controls['confirmPassword'].updateValueAndValidity());
   }
 
   /**
-   * Kayıt işlemini başlatan ana metot. 
-   * Form verilerini IRegisterRequest modeline dönüştürerek servise iletir.
+   * Kayıt operasyonu asenkron bir süreçtir. İşlem adımlarındaki 
+   * durum değişiklikleri manuel olarak işaretlenerek performans korunur.
    */
   onRegister(): void {
     if (this.validateForm.valid) {
       this.loading = true;
+      /* İstek öncesi loading durumunun yansıması için işaretleme yapılır. */
+      this.cdr.markForCheck();
       
-      // any yerine IRegisterRequest modelini kullanarak tip güvenliğini sağlıyoruz
       const registerPayload: IRegisterRequest = this.validateForm.value;
       
       this.auth.register(registerPayload).subscribe({
@@ -112,20 +111,24 @@ export class Register implements OnInit {
           this.message.success('Kayıt başarılı! Hoş geldiniz.');
           this.router.navigate(['/login']);
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (err) => {
           this.message.error('Kayıt başarısız. Bilgileri kontrol edin.');
           this.loading = false;
+          /* Hata durumunda loading ikonunun kapanması sağlanır. */
+          this.cdr.markForCheck();
         }
       });
     } else {
-      // Form geçersizse tüm alanları "kirli" (dirty) olarak işaretleyip hataları gösteririz
+      /* Form validasyon hatalarının tetiklenmesi ve arayüzde görünmesi sağlanır. */
       Object.values(this.validateForm.controls).forEach(control => {
         if (control.invalid) {
           control.markAsDirty();
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
+      this.cdr.markForCheck();
     }
   }
 }
